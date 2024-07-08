@@ -419,16 +419,10 @@ void Responder::refreshSerialNumber()
 spdmcpp::RetStat
     Responder::handleEventForSerialNumber(spdmcpp::EventClass& event)
 {
-    auto rs = connection.handleEvent(event);
+    auto rs = handleEventForRefresh(event);
 
-    if (isError(rs) || connection.isWaitingForResponse())
+    if (isError(rs) || (!event.is<EventReceiveClass>()))
     {
-        if (connection.slotHasInfo(connection.getCurrentCertificateSlotIdx(),
-                                SlotInfoEnum::CERTIFICATES))
-        {
-            updateCertificatesInfo();
-            updateLastUpdateTime();
-        }
         return rs;
     }
 
@@ -449,12 +443,12 @@ spdmcpp::RetStat
             method.append(
                 "xyz.openbmc_project.Inventory.Decorator.Asset", "SerialNumber",
                 std::variant<std::string>(toBigEndianHexString(iter->second.ValueVector)));
-
             appContext.bus.call_noreply(method);
         }
     }
     return rs;
 }
+
 #endif
 
 void Responder::updateLastUpdateTime()
