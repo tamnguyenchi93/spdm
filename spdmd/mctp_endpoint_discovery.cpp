@@ -168,7 +168,7 @@ void MctpDiscovery::mctpNewObjectSignal(
     spdmApp.getLog().iprintln("mctpNewObjectSignal: " + std::string(objPath));
 
     size_t eid = getEid(interfaces);
-    if (eid == invalidEid)
+    if (eid >= invalidEid)
     {
         spdmApp.getLog().iprintln("SPDM mctpNewObjectSignal couldn't get EID for path '"s + std::string(objPath) + '\'');
         return;
@@ -529,9 +529,10 @@ sdbusplus::message::object_path
         auto reply = bus.new_method_call(mapperService, mapperPath,
                                          mapperInterface, method);
         reply.append(path, depth, interfaces);
+        auto callobj = bus.call(reply);
         std::map<std::string, std::map<std::string, std::set<std::string>>>
             response;
-        bus.call(reply).read(response);
+        callobj.read(response);
         for (const auto& [objectPath, serviceMap] : response)
         {
             for (const auto& [service, interfaceMap] : serviceMap)
