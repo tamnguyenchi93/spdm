@@ -4,7 +4,7 @@
 
 This library has been created to simulate packet corruptions between MCTP and SPDM. The primary function of the library is to intercept the system calls read and write used to communicate between MCTP and SPDM. Leveraging the ldpreload technique, the library is preloaded before other libraries, allowing it to intercept these calls and introduce modifications to the transmitted packets. The primary objective of this library is to simulate data packet corruption between MCTP and SPDM for testing purposes. The principle of the library is shown in the diagram below.  
 
-![Use case diagram](/imgs/usecasediag.png "Use case diagram")
+![Use case diagram](imgs/usecasediag.png "Use case diagram")
 
 
 The library will read configuration data from two system variables ***MCTP_CORRUPT_MODE*** and ***MCTP_CORRUPT_RAND_LEVEL***  parameter will determine which field of the packet was corrupted:
@@ -40,12 +40,12 @@ To configure the library to modify the size in 2 of the 10 packages, configure i
 ```
 export MCTP_CORRUPT_MODE=msglen
 export MCTP_CORRUPT_RAND_LEVEL='2/10'
-LD_LIBRARY_PATH=libpacketcorrupt.so spdmd -v 7
+LD_PRELOAD=libpacketcorrupt.so spdmd -v 7
 ```
 
 To configure the library so that packages numbered 6 and 7 of 8 have a modified version header, configure it as follows
 ```
 export MCTP_CORRUPT_MODE=version
 export MCTP_CORRUPT_RAND_LEVEL='6,7,8%10'
-LD_LIBRARY_PATH=libpacketcorrupt.so spdmd -v 7
+LD_PRELOAD=libpacketcorrupt.so spdmd -v 7
 ```
