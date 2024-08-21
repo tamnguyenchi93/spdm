@@ -16,6 +16,7 @@
  */
 
 #include "mctp_endpoint_discovery.hpp"
+
 #include "spdmcpp/common.hpp"
 #include "spdmd_app_context.hpp"
 
@@ -33,15 +34,23 @@ constexpr size_t invalidEid = 256;
 MctpDiscovery::MctpDiscovery(SpdmdApp& spdmApp) :
     bus(spdmApp.getBus()), spdmApp(spdmApp)
 #ifndef DISCOVERY_ONLY_FROM_MCTP_CONTROL
-    ,inventoryMatch(spdmApp.getBus(),
+    ,
+    inventoryMatch(spdmApp.getBus(),
                    sdbusplus::bus::match::rules::interfacesAdded(
-                       inventoryService.getPath()
-                    ),
+                       inventoryService.getPath()),
                    [this](sdbusplus::message::message& msg) {
                        sdbusplus::message::object_path objPath;
                        dbus::InterfaceMap interfaces;
                        msg.read(objPath, interfaces);
-                       inventoryNewObjectSignal(objPath, interfaces);
+                       if (checkMctpServicesReady())
+                       {
+                           inventoryNewObjectSignal(objPath, interfaces);
+                       }
+                       else
+                       {
+                           inventorySignalQueue.emplace_back(objPath,
+                                                             interfaces);
+                       }
                    })
 #endif
 {
@@ -58,11 +67,63 @@ MctpDiscovery::MctpDiscovery(SpdmdApp& spdmApp) :
             setupMCTPServices();
             mctpNewObjectSignal(objPath, interfaces);
         });
+
+    ccsmChange = std::make_unique<sdbusplus::bus::match_t>(
+        spdmApp.getBus(),
+        sdbusplus::bus::match::rules::propertiesChanged(
+            configurableStateManagerMctpPath, csmFeatureReadyStateIntfName),
+        [this](sdbusplus::message::message&) {
+            setupMCTPServices();
+            if (checkMctpServicesReady())
+            {
+                while (!inventorySignalQueue.empty())
+                {
+                    const auto& [path, ifc] = inventorySignalQueue.front();
+                    inventoryNewObjectSignal(path, ifc);
+                    inventorySignalQueue.pop_front();
+                }
+            }
+        });
     setupMCTPServices();
+}
+
+bool MctpDiscovery::checkMctpServicesReady()
+{
+    try
+    {
+        auto method = bus.new_method_call(
+            configurableStateManagerService, configurableStateManagerMctpPath,
+            "org.freedesktop.DBus.Properties", "Get");
+        method.append(csmFeatureReadyStateIntfName, "State");
+        auto reply = bus.call(method);
+        std::variant<std::string> state;
+        reply.read(state);
+        return std::get<std::string>(state) == csmFeatureReadyStateEnabled;
+    }
+    catch (const std::exception& e)
+    {
+        auto& log = spdmApp.getLog();
+        if (log.logLevel >= LogClass::Level::Debug)
+        {
+            using namespace std::string_literals;
+            log.iprintln("Warning: Discovery->checkMctpServicesReady "s +
+                         e.what());
+        }
+    }
+    return false;
 }
 
 void MctpDiscovery::setupMCTPServices()
 {
+    if (!checkMctpServicesReady())
+    {
+        auto& log = spdmApp.getLog();
+        if (log.logLevel >= LogClass::Level::Debug)
+        {
+            log.iprintln("Discovery->mctp services are not ready yet..");
+        }
+        return;
+    }
     auto svcNames = getMCTPServices();
     if (svcNames.empty())
     {
@@ -91,9 +152,13 @@ void MctpDiscovery::setupMCTPServices()
         }
         catch (const std::exception& e)
         {
-            using namespace std::string_literals;
-            spdmApp.getLog().iprintln(
-                "Warning: Discovery->GetManagedObjects "s + e.what());
+            auto& log = spdmApp.getLog();
+            if (log.logLevel >= LogClass::Level::Error)
+            {
+                using namespace std::string_literals;
+                log.iprintln("Warning: Discovery->GetManagedObjects "s +
+                             e.what());
+            }
             continue;
         }
         for (const auto& [objectPath, interfaces] : objects)
@@ -112,12 +177,15 @@ std::unordered_set<std::string> MctpDiscovery::getMCTPServices()
 
     std::string path = "/";
     int depth = 0;
-    const std::vector<std::string> interfaces = {"xyz.openbmc_project.MCTP.Endpoint"};
+    const std::vector<std::string> interfaces = {
+        "xyz.openbmc_project.MCTP.Endpoint"};
 
-    auto reply = bus.new_method_call(mapperService, mapperPath, mapperInterface, method);
+    auto reply =
+        bus.new_method_call(mapperService, mapperPath, mapperInterface, method);
     reply.append(path, depth, interfaces);
 
-    std::map<std::string, std::map<std::string, std::vector<std::string>>> response;
+    std::map<std::string, std::map<std::string, std::vector<std::string>>>
+        response;
     std::unordered_set<std::string> devServices;
 
     try
@@ -142,7 +210,6 @@ std::unordered_set<std::string> MctpDiscovery::getMCTPServices()
     return devServices;
 }
 
-
 void MctpDiscovery::tryConnectMCTP(const std::string& sockPath)
 {
     // There is some issue with MCTP-PCIE CTRL daemon which starts,so
@@ -166,28 +233,47 @@ void MctpDiscovery::mctpNewObjectSignal(
     const dbus::InterfaceMap& interfaces)
 {
     spdmApp.getLog().iprintln("mctpNewObjectSignal: " + std::string(objPath));
+    /** If MCTP service is not read yet ignore */
+    if (!checkMctpServicesReady())
+    {
+        auto& log = spdmApp.getLog();
+        if (log.logLevel >= LogClass::Level::Debug)
+        {
+            log.iprintln("Discovery->mctp services are not ready yet..");
+        }
+        return;
+    }
 
     size_t eid = getEid(interfaces);
     if (eid >= invalidEid)
     {
-        spdmApp.getLog().iprintln("SPDM mctpNewObjectSignal couldn't get EID for path '"s + std::string(objPath) + '\'');
+        spdmApp.getLog().iprintln(
+            "SPDM mctpNewObjectSignal couldn't get EID for path '"s +
+            std::string(objPath) + '\'');
         return;
     }
     auto uuid = getUUID(interfaces);
 #ifdef DISCOVERY_ONLY_FROM_MCTP_CONTROL
     sdbusplus::message::object_path invPath;
 #else
-    if (uuid.empty()) {
-        spdmApp.getLog().iprintln("SPDM mctpNewObjectSignal couldn't get UUID for path '"s + std::string(objPath) + '\'');
+    if (uuid.empty())
+    {
+        spdmApp.getLog().iprintln(
+            "SPDM mctpNewObjectSignal couldn't get UUID for path '"s +
+            std::string(objPath) + '\'');
         return;
     }
     auto invPath = getInventoryPath(uuid);
-    if (invPath.filename().empty()) {
+    if (invPath.filename().empty())
+    {
         static constexpr auto confName = "name";
-        const auto eidName = spdmApp.getPropertyByEid<const std::string>(eid, confName);
-        if(!eidName.has_value()) {
-            spdmApp.getLog().iprintln("SPDM mctpNewObjectSignal couldn't get inventory path for UUID'"s
-                + uuid + " EID " + std::to_string(eid) );
+        const auto eidName =
+            spdmApp.getPropertyByEid<const std::string>(eid, confName);
+        if (!eidName.has_value())
+        {
+            spdmApp.getLog().iprintln(
+                "SPDM mctpNewObjectSignal couldn't get inventory path for UUID'"s +
+                uuid + " EID " + std::to_string(eid));
             return;
         }
         invPath = "/" + eidName.value();
@@ -230,7 +316,8 @@ void MctpDiscovery::mctpNewObjectSignal(
         return;
     }
     tryConnectMCTP(sockPath);
-    dbus_api::ResponderArgs args { mctp_eid_t(eid), uuid, mediumType, objPath, invPath, sockPath };
+    dbus_api::ResponderArgs args{mctp_eid_t(eid), uuid,    mediumType,
+                                 objPath,         invPath, sockPath};
     spdmApp.discoveryUpdateResponder(args);
 }
 
@@ -246,14 +333,18 @@ void MctpDiscovery::inventoryNewObjectSignal(
     auto uuid = getUUID(interfaces);
     if (uuid.empty())
     {
-        spdmApp.getLog().iprintln("SPDM inventoryNewObjectSignal couldn't get UUID for path '"s + std::string(objPath) + '\'');
+        spdmApp.getLog().iprintln(
+            "SPDM inventoryNewObjectSignal couldn't get UUID for path '"s +
+            std::string(objPath) + '\'');
         return;
     }
     auto mctp = getMCTPObject(uuid);
     size_t eid = getEid(mctp.interfaces);
     if (eid == invalidEid)
     {
-        spdmApp.getLog().iprintln("SPDM inventoryNewObjectSignal couldn't get EID for UUID '"s + uuid + '\'');
+        spdmApp.getLog().iprintln(
+            "SPDM inventoryNewObjectSignal couldn't get EID for UUID '"s +
+            uuid + '\'');
         return;
     }
     auto mediumType = getMediumType(mctp.interfaces);
@@ -295,7 +386,8 @@ void MctpDiscovery::inventoryNewObjectSignal(
         return;
     }
     tryConnectMCTP(transpSock);
-    dbus_api::ResponderArgs args { mctp_eid_t(eid), uuid, mediumType, mctp.path, objPath, transpSock };
+    dbus_api::ResponderArgs args{mctp_eid_t(eid), uuid,    mediumType,
+                                 mctp.path,       objPath, transpSock};
     spdmApp.discoveryUpdateResponder(args);
 }
 #endif
@@ -373,7 +465,8 @@ size_t
     return invalidEid;
 }
 
-std::string MctpDiscovery::getTransportSocket(const dbus::InterfaceMap& interfaces)
+std::string
+    MctpDiscovery::getTransportSocket(const dbus::InterfaceMap& interfaces)
 {
     SPDMCPP_LOG_TRACE_FUNC(spdmApp.getLog());
     try
@@ -387,26 +480,31 @@ std::string MctpDiscovery::getTransportSocket(const dbus::InterfaceMap& interfac
             {
                 try
                 {
-                    const auto vec = std::get<std::vector<uint8_t>>(addr->second);
+                    const auto vec =
+                        std::get<std::vector<uint8_t>>(addr->second);
                     return {vec.begin(), vec.end()};
                 }
-                catch(const std::exception& e)
+                catch (const std::exception& e)
                 {
-                    if (spdmApp.getLog().logLevel >= spdmcpp::LogClass::Level::Error)
+                    if (spdmApp.getLog().logLevel >=
+                        spdmcpp::LogClass::Level::Error)
                     {
                         using namespace std::string_literals;
-                        spdmApp.getLog().iprintln("Unable to get transport socket property "s + e.what());
+                        spdmApp.getLog().iprintln(
+                            "Unable to get transport socket property "s +
+                            e.what());
                     }
                 }
             }
         }
     }
-    catch(const std::exception& e)
+    catch (const std::exception& e)
     {
         if (spdmApp.getLog().logLevel >= spdmcpp::LogClass::Level::Error)
         {
             using namespace std::string_literals;
-            spdmApp.getLog().iprintln("Unable to get transport socket inteface "s + e.what());
+            spdmApp.getLog().iprintln(
+                "Unable to get transport socket inteface "s + e.what());
         }
     }
     return {};
@@ -484,7 +582,7 @@ MctpDiscovery::Object MctpDiscovery::getMCTPObject(const std::string& uuid)
 
     try
     {
-        for (auto &[name, service]: mctpControlServices)
+        for (auto& [name, service] : mctpControlServices)
         {
             auto method = bus.new_method_call(
                 name.c_str(), mctpPath, "org.freedesktop.DBus.ObjectManager",
@@ -506,7 +604,6 @@ MctpDiscovery::Object MctpDiscovery::getMCTPObject(const std::string& uuid)
         spdmApp.getLog().print(e.what());
     }
     return {};
-
 }
 
 sdbusplus::message::object_path
@@ -555,7 +652,8 @@ sdbusplus::message::object_path
                 {
                     if (spdmApp.getLog().logLevel >= LogClass::Level::Error)
                     {
-                        spdmApp.getLog().iprint("UUID interface was not found for: ");
+                        spdmApp.getLog().iprint(
+                            "UUID interface was not found for: ");
                         spdmApp.getLog().iprintln(objectPath);
                     }
                 }
@@ -575,19 +673,22 @@ sdbusplus::message::object_path
     return {};
 }
 
-std::optional<spdmcpp::TransportMedium> MctpDiscovery::getMediumType(const dbus::InterfaceMap& interfaces)
+std::optional<spdmcpp::TransportMedium>
+    MctpDiscovery::getMediumType(const dbus::InterfaceMap& interfaces)
 {
     try
     {
         auto intf = interfaces.find(mctpBindingIntfProperty);
-        if(intf != interfaces.end())
+        if (intf != interfaces.end())
         {
-            return getInternalMediumType(intf->second, mctpBindingIntfPropertyBindType);
+            return getInternalMediumType(intf->second,
+                                         mctpBindingIntfPropertyBindType);
         }
         intf = interfaces.find(mctpEndpointIntfName);
         if (intf != interfaces.end())
         {
-            return getInternalMediumType(intf->second, mctpEndpointIntfPropertyMediumType);
+            return getInternalMediumType(intf->second,
+                                         mctpEndpointIntfPropertyMediumType);
         }
     }
     catch (const std::exception& e)
@@ -599,7 +700,7 @@ std::optional<spdmcpp::TransportMedium> MctpDiscovery::getMediumType(const dbus:
         if (log.logLevel >= LogClass::Level::Error)
         {
             log.println("Unable to determine medium type. Interfaces path:");
-            for (const auto& [path,_] : interfaces)
+            for (const auto& [path, _] : interfaces)
             {
                 log.println(path);
             }
@@ -620,8 +721,10 @@ std::optional<spdmcpp::TransportMedium> MctpDiscovery::getInternalMediumType(
 
     try
     {
-        mediumTypeStr = std::get<std::string>(properties.at(std::string(propName)));
-        mediumTypeStr = mediumTypeStr.substr(mediumTypeStr.find_last_of('.')+1);
+        mediumTypeStr =
+            std::get<std::string>(properties.at(std::string(propName)));
+        mediumTypeStr =
+            mediumTypeStr.substr(mediumTypeStr.find_last_of('.') + 1);
     }
     catch (const std::exception& e)
     {

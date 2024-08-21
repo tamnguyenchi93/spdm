@@ -19,6 +19,7 @@
 #include "spdmcpp/common.hpp"
 #include "spdmd_app.hpp"
 #include <unordered_set>
+#include <deque>
 
 #include <sdbusplus/bus/match.hpp>
 
@@ -73,6 +74,13 @@ class MctpDiscovery
     /** @brief Used to watch for new MCTP endpoints */
     unique_ptr<sdbusplus::bus::match_t> mctpMatch;
     std::unordered_map<std::string, unique_ptr<dbus::ServiceHelper>> mctpControlServices;
+
+    /** @brief Used to watch for new CCSM interface */
+    unique_ptr<sdbusplus::bus::match_t> ccsmChange;
+
+    /** @brief Inventory new object signal queue */
+    std::deque<std::pair<sdbusplus::message::object_path, dbus::InterfaceMap>>
+        inventorySignalQueue;
 
     /** @brief Called when a new mctp endpoint is discovered */
     void mctpNewObjectSignal(const sdbusplus::message::object_path& objectPath, const dbus::InterfaceMap& interfaces);
@@ -137,6 +145,26 @@ class MctpDiscovery
     /** @brief MCTP discovery path */
     static constexpr auto mctpPath = "/xyz/openbmc_project/mctp";
 
+    /** @brief CCSM state manager service */
+    static constexpr auto configurableStateManagerService =
+        "xyz.openbmc_project.State.ConfigurableStateManager";
+
+    /** @brief CCSM state ready interface name */
+    static constexpr auto csmFeatureReadyStateIntfName =
+        "xyz.openbmc_project.State.FeatureReady";
+
+    /** @brief CCSM enable state enabled */
+    static constexpr auto csmFeatureReadyStateEnabled =
+        "xyz.openbmc_project.State.FeatureReady.States.Enabled";
+
+    /** @brief MCTP configuration manager path */
+    static constexpr auto configurableStateManagerMctpPath =
+        "/xyz/openbmc_project/state/configurableStateManager/MCTP";
+
+    /** @brief CCSM  */
+    static constexpr auto configurableStateManagerPath =
+        "/xyz/openbmc_project/state/configurableStateManager";
+
     /** @brief Object manager service */
     static constexpr auto objMgrSvc = "org.freedesktop.DBus.ObjectManager";
 
@@ -189,6 +217,9 @@ class MctpDiscovery
 
     /** @brief Get the unique service from the object mapper */
     std::unordered_set<std::string> getMCTPServices();
+
+    /** @brief return true if MCTP services are ready */
+    bool checkMctpServicesReady();
 
     /** @brief Setup MCTP services */
     void setupMCTPServices();
