@@ -23,12 +23,13 @@
 
 
 enum mctp_offsets {
-    mctp_offs_eid =  0,
-    mctp_offs_type = 1,
-    mctp_offs_vers = 2,
-    mctp_offs_code = 3,
-    mctp_offs_arg1 = 4,
-    mctp_offs_arg2 = 5,
+    mctp_offs_hdr =  0,
+    mctp_offs_eid =  1,
+    mctp_offs_type = 2,
+    mctp_offs_vers = 3,
+    mctp_offs_code = 4,
+    mctp_offs_arg1 = 5,
+    mctp_offs_arg2 = 6,
 };
 
 
