@@ -30,6 +30,7 @@
 #include <fstream>
 #include <bit>
 #include <type_traits>
+#include <ranges>
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define SPDMCPP_CONNECTION_RS_ERROR_RETURN(rs)                                 \
@@ -195,8 +196,7 @@ bool ConnectionClass::getCertificatesPEM(std::string& str,
     }
 
     const SlotClass& slot = Slots[slotidx];
-
-    for (auto& cert : slot.MCertificates)
+    for (const auto& cert : std::ranges::reverse_view(slot.MCertificates))
     {
         size_t off = str.size();
         size_t size = 4096;
