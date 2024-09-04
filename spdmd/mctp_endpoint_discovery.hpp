@@ -78,9 +78,11 @@ class MctpDiscovery
     /** @brief Used to watch for new CCSM interface */
     unique_ptr<sdbusplus::bus::match_t> ccsmChange;
 
+#ifndef DISCOVERY_ONLY_FROM_MCTP_CONTROL
     /** @brief Inventory new object signal queue */
     std::deque<std::pair<sdbusplus::message::object_path, dbus::InterfaceMap>>
         inventorySignalQueue;
+#endif
 
     /** @brief Called when a new mctp endpoint is discovered */
     void mctpNewObjectSignal(const sdbusplus::message::object_path& objectPath, const dbus::InterfaceMap& interfaces);

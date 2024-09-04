@@ -74,6 +74,7 @@ MctpDiscovery::MctpDiscovery(SpdmdApp& spdmApp) :
             configurableStateManagerMctpPath, csmFeatureReadyStateIntfName),
         [this](sdbusplus::message::message&) {
             setupMCTPServices();
+#ifndef DISCOVERY_ONLY_FROM_MCTP_CONTROL
             if (checkMctpServicesReady())
             {
                 while (!inventorySignalQueue.empty())
@@ -83,6 +84,7 @@ MctpDiscovery::MctpDiscovery(SpdmdApp& spdmApp) :
                     inventorySignalQueue.pop_front();
                 }
             }
+#endif
         });
     setupMCTPServices();
 }
