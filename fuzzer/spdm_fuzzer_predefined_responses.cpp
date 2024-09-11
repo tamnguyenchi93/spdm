@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  * limitations under the License.
  */
 
-
-
-
-
-
-#include <cstring>
-#include <cassert>
-#include <iostream>
-#include <fstream>
-
 #include "spdm_fuzzer_predefined_responses.hpp"
+
+#include <cassert>
+#include <cstring>
+#include <fstream>
+#include <iostream>
 
 const auto responseBegin = "ResponseBuffer = ";
 const size_t responseBeginLen = std::strlen(responseBegin);
@@ -40,9 +35,9 @@ bool PredefinedResponses::readFromHexFile(const fs::path& path)
     {
         std::vector<uint8_t> msg = readMsgRaw(line);
         if (msg.size() > 3)
-	{
+        {
             responses.emplace(3, msg);
-	}
+        }
     }
 
     return responses.size() > 0;
@@ -53,7 +48,7 @@ bool PredefinedResponses::readFromLogFile(const fs::path& path)
     std::ifstream responesFile(path);
     std::string line;
 
-    int noOfReadLines {};
+    int noOfReadLines{};
     while (std::getline(responesFile, line))
     {
         noOfReadLines++;
@@ -63,7 +58,7 @@ bool PredefinedResponses::readFromLogFile(const fs::path& path)
             continue;
         }
 
-        std::cerr<<"Parsing line: " << line << std::endl;
+        std::cerr << "Parsing line: " << line << std::endl;
 
         pos += responseBeginLen;
 
@@ -74,16 +69,18 @@ bool PredefinedResponses::readFromLogFile(const fs::path& path)
             responses.emplace(msg[3], msg);
         }
     }
-    std::cerr<<"Parsed "<<noOfReadLines<<" lines" << std::endl;
+    std::cerr << "Parsed " << noOfReadLines << " lines" << std::endl;
     return responses.size() > 0;
 }
 
-//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-const std::vector<uint8_t>& PredefinedResponses::getResponse(uint8_t msgType, int index) const
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+const std::vector<uint8_t>& PredefinedResponses::getResponse(uint8_t msgType,
+                                                             int index) const
 {
     if (responses.count(msgType) == 0)
     {
-//        std::cerr<<"Can't find message type " << (int) msgType << std::endl;
+        //        std::cerr<<"Can't find message type " << (int) msgType <<
+        //        std::endl;
         return empty;
     }
 
@@ -99,26 +96,27 @@ const std::vector<uint8_t>& PredefinedResponses::getResponse(uint8_t msgType, in
     return itr1->second;
 }
 
-std::vector<uint8_t> PredefinedResponses::readMsgRaw(const std::string &msgStr, size_t pos)
+std::vector<uint8_t> PredefinedResponses::readMsgRaw(const std::string& msgStr,
+                                                     size_t pos)
 {
-   std::vector<uint8_t> result;
+    std::vector<uint8_t> result;
     size_t x = pos;
     while (pos < msgStr.length())
     {
         try
         {
             int val = std::stoi(msgStr.substr(pos), &x, 16);
-            pos+=x;
+            pos += x;
             result.push_back(val & 0xFF);
         }
-        catch(const std::exception& e)
+        catch (const std::exception& e)
         {
-            //What to do with broken data. Skip it or add random.
+            // What to do with broken data. Skip it or add random.
             x++;
             continue;
         }
     }
-    std::cerr<<std::endl;
+    std::cerr << std::endl;
 
-   return result;
+    return result;
 }

@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
 
 #include "mctp_endpoint_discovery.hpp"
 #include "spdmcpp/common.hpp"
@@ -45,7 +40,6 @@ namespace spdmd
 dbus::ServiceHelper inventoryService("/", "org.freedesktop.DBus.ObjectManager",
                                      "xyz.openbmc_project.PLDM");
 
-
 SpdmdApp::SpdmdApp() :
     SpdmdAppContext(sdeventplus::Event::get_default(),
 #ifdef USE_DEFAULT_DBUS
@@ -53,11 +47,8 @@ SpdmdApp::SpdmdApp() :
 #else
                     bus::new_system(),
 #endif
-                    std::cout
-                )
-{
-}
-
+                    std::cout)
+{}
 
 void SpdmdApp::setupCli(int argc, char** argv)
 {
@@ -142,18 +133,18 @@ void SpdmdApp::connectMCTP(const std::string& sockPath)
         auto io = std::make_shared<spdmcpp::MctpIoClass>(getLog());
         if (io->createSocket(sockPath))
         {
-            auto callback = [io, this](sdeventplus::source::IO& /*io*/, int /*fd*/,
-                            uint32_t revents) {
+            auto callback = [io, this](sdeventplus::source::IO& /*io*/,
+                                       int /*fd*/, uint32_t revents) {
                 mctpCallback(revents, *io);
             };
             mctpEvents[sockPath] = std::make_unique<sdeventplus::source::IO>(
-                event, io->getSocket(), EPOLLIN, std::move(callback)
-            );
+                event, io->getSocket(), EPOLLIN, std::move(callback));
             context.registerIo(io, sockPath);
         }
         else
         {
-            if (getLog().logLevel >= spdmcpp::LogClass::Level::Warning) {
+            if (getLog().logLevel >= spdmcpp::LogClass::Level::Warning)
+            {
                 getLog().iprintln("Unable to connect to mctp-i2c-mux socket");
             }
         }
@@ -251,7 +242,8 @@ void SpdmdApp::createResponder(const dbus_api::ResponderArgs& args)
     if (args.medium.has_value())
     {
         responders[args.eid] = std::make_unique<dbus_api::Responder>(
-            *this, path, args.eid, args.mctpPath, args.inventoryPath, args.medium.value_or(TransportMedium::PCIe), args.socketPath);
+            *this, path, args.eid, args.mctpPath, args.inventoryPath,
+            args.medium.value_or(TransportMedium::PCIe), args.socketPath);
     }
     else
     {
@@ -290,76 +282,70 @@ void SpdmdApp::setupMeasurementDelay()
         std::chrono::seconds{1}, std::move(timerCallback));
 }
 
-
-
-void SpdmdApp::mctpCallback(uint32_t revents, spdmcpp::MctpIoClass &mctpIo)
+void SpdmdApp::mctpCallback(uint32_t revents, spdmcpp::MctpIoClass& mctpIo)
 {
 
-        SPDMCPP_LOG_TRACE_FUNC(getLog());
+    SPDMCPP_LOG_TRACE_FUNC(getLog());
 
-        if (!(revents & EPOLLIN))
+    if (!(revents & EPOLLIN))
+    {
+        return;
+    }
+
+    {
+        auto rs = mctpIo.read(packetBuffer);
+        if (rs != spdmcpp::RetStat::OK)
         {
+            getLog().println(
+                "SpdmdApp::IO read failed likely due to broken socket connection, quitting!");
+            event.exit(1);
             return;
         }
+    }
 
+    uint8_t eid = 0;
+    {
+        spdmcpp::TransportClass::LayerState lay; // TODO double decode
+        auto rs = spdmcpp::MctpTransportClass::peekEid(packetBuffer, lay, eid);
+
+        SPDMCPP_LOG_TRACE_RS(getLog(), rs);
+        switch (rs)
         {
-            auto rs = mctpIo.read(packetBuffer);
-            if (rs != spdmcpp::RetStat::OK)
-            {
-                getLog().println(
-                    "SpdmdApp::IO read failed likely due to broken socket connection, quitting!");
-                event.exit(1);
+            case spdmcpp::RetStat::OK:
+                break;
+            case spdmcpp::RetStat::ERROR_BUFFER_TOO_SMALL:
+                getLog().print("SpdmdApp::IO: packet size = ");
+                getLog().print(packetBuffer.size());
+                getLog().println(" is too small to be a valid SPDM packet");
                 return;
-            }
+            default:
+                getLog().print(
+                    "SpdmdApp::IO peekEid returned unexpected error: ");
+                getLog().println(rs);
+                return;
         }
-
-        uint8_t eid = 0;
-        {
-            spdmcpp::TransportClass::LayerState lay; // TODO double decode
-            auto rs =
-                spdmcpp::MctpTransportClass::peekEid(packetBuffer, lay, eid);
-
-            SPDMCPP_LOG_TRACE_RS(getLog(), rs);
-            switch (rs)
-            {
-                case spdmcpp::RetStat::OK:
-                    break;
-                case spdmcpp::RetStat::ERROR_BUFFER_TOO_SMALL:
-                    getLog().print("SpdmdApp::IO: packet size = ");
-                    getLog().print(packetBuffer.size());
-                    getLog().println(" is too small to be a valid SPDM packet");
-                    return;
-                default:
-                    getLog().print(
-                        "SpdmdApp::IO peekEid returned unexpected error: ");
-                    getLog().println(rs);
-                    return;
-            }
-        }
-        if (eid >= responders.size())
-        {
-            getLog().println("SpdmdApp::IO received message from EID=" +
-                             std::to_string(eid) +
-                             " outside of responder array size=" +
-                             std::to_string(responders.size()));
-            return;
-        }
-        if (!responders[eid])
-        {
-            getLog().println("SpdmdApp::IO received message from EID=" +
-                             std::to_string(eid) +
-                             " while responder class is not created");
-        }
-        else
-        {
-            auto& resp = responders[eid];
-            spdmcpp::EventReceiveClass ev(packetBuffer);
-            resp->handleEvent(ev);
-        }
+    }
+    if (eid >= responders.size())
+    {
+        getLog().println(
+            "SpdmdApp::IO received message from EID=" + std::to_string(eid) +
+            " outside of responder array size=" +
+            std::to_string(responders.size()));
+        return;
+    }
+    if (!responders[eid])
+    {
+        getLog().println(
+            "SpdmdApp::IO received message from EID=" + std::to_string(eid) +
+            " while responder class is not created");
+    }
+    else
+    {
+        auto& resp = responders[eid];
+        spdmcpp::EventReceiveClass ev(packetBuffer);
+        resp->handleEvent(ev);
+    }
 }
-
-
-
 
 void SpdmdApp::measurementDelayCallback()
 {
@@ -389,8 +375,7 @@ int SpdmdApp::loop()
     return event.loop();
 }
 
-
-}
+} // namespace spdmd
 
 int main(int argc, char** argv)
 {

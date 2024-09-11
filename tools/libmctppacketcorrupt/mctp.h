@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-
-
 #pragma once
 
 // MCTP internal defs
 
-
-enum mctp_offsets {
-    mctp_offs_hdr =  0,
-    mctp_offs_eid =  1,
+enum mctp_offsets
+{
+    mctp_offs_hdr = 0,
+    mctp_offs_eid = 1,
     mctp_offs_type = 2,
     mctp_offs_vers = 3,
     mctp_offs_code = 4,
@@ -32,16 +30,16 @@ enum mctp_offsets {
     mctp_offs_arg2 = 6,
 };
 
-
-enum mctp_type {
+enum mctp_type
+{
     mctp_type_spdm = 5,
 };
 
-enum mctp_resp_code {
-    mctp_resp_diggest       = 0x01,
-    mctp_resp_cert          = 0x02,
-    mctp_resp_version       = 0x04,
-    mctp_resp_capab         = 0x61,
-    mctp_resp_algo          = 0x63
+enum mctp_resp_code
+{
+    mctp_resp_diggest = 0x01,
+    mctp_resp_cert = 0x02,
+    mctp_resp_version = 0x04,
+    mctp_resp_capab = 0x61,
+    mctp_resp_algo = 0x63
 };
-

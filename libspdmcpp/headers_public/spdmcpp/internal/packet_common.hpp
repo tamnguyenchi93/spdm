@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 #include "../packet.hpp"
 
 #pragma once
@@ -27,7 +23,8 @@
 
 // helper for basic types
 template <typename T>
-[[nodiscard]] RetStat packetDecodeBasic(spdmcpp::LogClass& logg, T& p, const std::vector<uint8_t>& buf,
+[[nodiscard]] RetStat packetDecodeBasic(spdmcpp::LogClass& logg, T& p,
+                                        const std::vector<uint8_t>& buf,
                                         size_t& start)
 {
     if (start >= buf.size())
@@ -51,8 +48,9 @@ template <typename T>
 
 // helper for statically sized structures
 template <typename T>
-[[nodiscard]] RetStat
-    packetDecodeInternal(spdmcpp::LogClass& logg ,T& p, const std::vector<uint8_t>& buf, size_t& start)
+[[nodiscard]] RetStat packetDecodeInternal(spdmcpp::LogClass& logg, T& p,
+                                           const std::vector<uint8_t>& buf,
+                                           size_t& start)
 {
     SPDMCPP_STATIC_ASSERT(T::sizeIsConstant);
 
@@ -85,13 +83,14 @@ template <typename T>
  * end it marks the offset right after the decoded packet
  */
 template <typename T, typename... Targs>
-[[nodiscard]] RetStat packetDecode(spdmcpp::LogClass& logg,T& p, const std::vector<uint8_t>& buf,
-                                   size_t& off, Targs... fargs)
+[[nodiscard]] RetStat packetDecode(spdmcpp::LogClass& logg, T& p,
+                                   const std::vector<uint8_t>& buf, size_t& off,
+                                   Targs... fargs)
 {
     if (off + sizeof(PacketMessageHeader) > buf.size())
     {
         SPDMCPP_LOG_TRACE(logg, off);
-        SPDMCPP_LOG_TRACE(logg,  sizeof(PacketMessageHeader));
+        SPDMCPP_LOG_TRACE(logg, sizeof(PacketMessageHeader));
         SPDMCPP_LOG_TRACE(logg, buf.size());
         return RetStat::ERROR_BUFFER_TOO_SMALL;
     }
@@ -99,7 +98,7 @@ template <typename T, typename... Targs>
         T::requestResponseCode)
     {
         SPDMCPP_LOG_TRACE(logg, off);
-        SPDMCPP_LOG_TRACE(logg,  sizeof(PacketMessageHeader));
+        SPDMCPP_LOG_TRACE(logg, sizeof(PacketMessageHeader));
         SPDMCPP_LOG_TRACE(logg, buf.size());
         return RetStat::ERROR_WRONG_REQUEST_RESPONSE_CODE;
     }
@@ -107,7 +106,7 @@ template <typename T, typename... Targs>
     if (isError(rs))
     {
         SPDMCPP_LOG_TRACE(logg, off);
-        SPDMCPP_LOG_TRACE(logg,  sizeof(PacketMessageHeader));
+        SPDMCPP_LOG_TRACE(logg, sizeof(PacketMessageHeader));
         SPDMCPP_LOG_TRACE(logg, buf.size());
         return rs;
     }
@@ -182,7 +181,7 @@ inline void packetEncodeBasic(const uint8_t* src, size_t size,
     {
         buf.resize(start + size);
     }
-    if(!src)
+    if (!src)
     {
         return;
     }
@@ -202,15 +201,16 @@ inline void packetEncodeBasic(const std::array<uint8_t, N>& src,
     packetEncodeBasic(src.data(), src.size(), buf, start);
 }
 
-[[nodiscard]] inline RetStat packetDecodeBasic(spdmcpp::LogClass& logg,uint8_t* dst, size_t size,
+[[nodiscard]] inline RetStat packetDecodeBasic(spdmcpp::LogClass& logg,
+                                               uint8_t* dst, size_t size,
                                                const std::vector<uint8_t>& buf,
                                                size_t& start)
 {
     if (start + size > buf.size())
     {
-        SPDMCPP_LOG_TRACE(logg,start);
-        SPDMCPP_LOG_TRACE(logg,size);
-        SPDMCPP_LOG_TRACE(logg,buf.size());
+        SPDMCPP_LOG_TRACE(logg, start);
+        SPDMCPP_LOG_TRACE(logg, size);
+        SPDMCPP_LOG_TRACE(logg, buf.size());
         return RetStat::ERROR_BUFFER_TOO_SMALL;
     }
     if (dst)
@@ -220,7 +220,8 @@ inline void packetEncodeBasic(const std::array<uint8_t, N>& src,
     start += size;
     return RetStat::OK;
 }
-[[nodiscard]] inline RetStat packetDecodeBasic(spdmcpp::LogClass& logg,std::vector<uint8_t>& dst,
+[[nodiscard]] inline RetStat packetDecodeBasic(spdmcpp::LogClass& logg,
+                                               std::vector<uint8_t>& dst,
                                                const std::vector<uint8_t>& buf,
                                                size_t& start)
 {

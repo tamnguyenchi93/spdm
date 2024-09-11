@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,65 +15,63 @@
  * limitations under the License.
  */
 
+#include "spdm_fuzzer_responder.hpp"
 
-
-
-
+#include "spdmcpp/enum_defs.hpp"
 
 #include <array>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <limits>
 #include <ostream>
 #include <span>
 #include <vector>
-#include <fstream>
-
-#include "spdm_fuzzer_responder.hpp"
-#include "spdmcpp/enum_defs.hpp"
 
 #ifndef LOCAL_ASSERT_EQ
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define LOCAL_ASSERT_EQ(val1, val2) if ((val1) != (val2)) {    \
-        flowResult = false;                                    \
-        log.print("Fuzzing fail in line ");                    \
-        log.print(__LINE__);                                   \
-        log.print(" Expected different value: ");              \
-        log.print(" "#val1" (");                               \
-        log.print(val1);                                       \
-        log.print(") != "#val2" (");                           \
-        log.print(val2);                                       \
-        log.println(") ... Exit");                             \
-        break;                                                 \
+#define LOCAL_ASSERT_EQ(val1, val2)                                            \
+    if ((val1) != (val2))                                                      \
+    {                                                                          \
+        flowResult = false;                                                    \
+        log.print("Fuzzing fail in line ");                                    \
+        log.print(__LINE__);                                                   \
+        log.print(" Expected different value: ");                              \
+        log.print(" " #val1 " (");                                             \
+        log.print(val1);                                                       \
+        log.print(") != " #val2 " (");                                         \
+        log.print(val2);                                                       \
+        log.println(") ... Exit");                                             \
+        break;                                                                 \
     }
 #endif /*LOCAL_ASSERT_EQ*/
 
 #ifndef LOCAL_EXPECT_EQ
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define LOCAL_EXPECT_EQ(val1, val2)                            \
-    if ((val1) != (val2))                                      \
-    {                                                          \
-        flowResult = false;                                    \
-        log.print("Fuzzing problem in line ");                 \
-        log.print(__LINE__);                                   \
-        log.print("Expected different value: ");               \
-        log.print(": "#val1" (");                              \
-        log.print(val1);                                       \
-        log.print(") != "#val2" (");                           \
-        log.print(val2);                                       \
-        log.println(")");                                      \
+#define LOCAL_EXPECT_EQ(val1, val2)                                            \
+    if ((val1) != (val2))                                                      \
+    {                                                                          \
+        flowResult = false;                                                    \
+        log.print("Fuzzing problem in line ");                                 \
+        log.print(__LINE__);                                                   \
+        log.print("Expected different value: ");                               \
+        log.print(": " #val1 " (");                                            \
+        log.print(val1);                                                       \
+        log.print(") != " #val2 " (");                                         \
+        log.print(val2);                                                       \
+        log.println(")");                                                      \
     }
 #endif /*LOCAL_EXPECT_EQ*/
 
 #ifndef LOCAL_ASSERT_MBEDTLS_0
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define LOCAL_ASSERT_MBEDTLS_0(call)                           \
-    if (int _ret = (call))                                     \
-    {                                                          \
-        mbedtlsPrintErrorLine(log, #call, _ret);               \
-        LOCAL_ASSERT_EQ(_ret, 0);                              \
+#define LOCAL_ASSERT_MBEDTLS_0(call)                                           \
+    if (int _ret = (call))                                                     \
+    {                                                                          \
+        mbedtlsPrintErrorLine(log, #call, _ret);                               \
+        LOCAL_ASSERT_EQ(_ret, 0);                                              \
     }
 #endif
 
@@ -94,13 +92,13 @@ RetStat FuzzingResponder::sendRandomData(MessageHashEnum hashIdx)
     trans.encodePre(buf, lay);
     size_t start = lay.getEndOffset();
 
-    char size {};
+    char size{};
     if (!std::cin.get(size))
     {
         return RetStat::ERROR_UNKNOWN;
     }
-    char tmp {};
-    for (int i=0; i<size; i++)
+    char tmp{};
+    for (int i = 0; i < size; i++)
     {
         if (!std::cin.get(tmp))
         {
@@ -111,7 +109,8 @@ RetStat FuzzingResponder::sendRandomData(MessageHashEnum hashIdx)
 
     if (hashIdx < MessageHashEnum::NUM)
     {
-        if (auto rs=getHash(hashIdx).update(buf, start); rs!=RetStat::OK) {
+        if (auto rs = getHash(hashIdx).update(buf, start); rs != RetStat::OK)
+        {
             return rs;
         }
     }
@@ -121,7 +120,8 @@ RetStat FuzzingResponder::sendRandomData(MessageHashEnum hashIdx)
     return RetStat::OK;
 }
 
-bool FuzzingResponder::sendPreparedResponse(RequestResponseEnum msgType, MessageHashEnum hashIdx, int msgIdx)
+bool FuzzingResponder::sendPreparedResponse(RequestResponseEnum msgType,
+                                            MessageHashEnum hashIdx, int msgIdx)
 {
     TransportClass::LayerState lay;
     std::vector<uint8_t> buf;
@@ -129,10 +129,11 @@ bool FuzzingResponder::sendPreparedResponse(RequestResponseEnum msgType, Message
     trans.encodePre(buf, lay);
     size_t start = lay.getEndOffset();
 
-    std::vector<uint8_t> buf2 = predefinedResponses.getResponse(static_cast<uint8_t>(msgType), msgIdx);
+    std::vector<uint8_t> buf2 =
+        predefinedResponses.getResponse(static_cast<uint8_t>(msgType), msgIdx);
     if (buf2.size() == 0)
     {
-        //abort();
+        // abort();
         return false;
     }
 
@@ -140,7 +141,8 @@ bool FuzzingResponder::sendPreparedResponse(RequestResponseEnum msgType, Message
 
     if (hashIdx < MessageHashEnum::NUM)
     {
-        if(getHash(hashIdx).update(buf, start) != RetStat::OK) {
+        if (getHash(hashIdx).update(buf, start) != RetStat::OK)
+        {
             return false;
         }
     }
@@ -163,7 +165,7 @@ void FuzzingResponder::resetState()
 
 RetStat FuzzingResponder::updateHash(MessageHashEnum hashIdx)
 {
-    //SPDMCPP_ASSERT(IO.WriteQueue.size() == 1);
+    // SPDMCPP_ASSERT(IO.WriteQueue.size() == 1);
 
     std::vector<uint8_t> buf;
     auto rs = io.read(buf);
@@ -192,10 +194,12 @@ void FuzzingResponder::prepareDefaultResponses()
     algoResp.Min.Header.MessageVersion = MessageVersionEnum::SPDM_1_1;
     algoResp.Min.BaseAsymAlgo = asymAlgo;
     algoResp.Min.BaseHashAlgo = hashAlgo;
-    algoResp.Min.MeasurementHashAlgo = MeasurementHashAlgoFlags::TPM_ALG_SHA_512;
+    algoResp.Min.MeasurementHashAlgo =
+        MeasurementHashAlgoFlags::TPM_ALG_SHA_512;
 }
 
-bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &modified)
+bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse,
+                                    bool& modified)
 {
     static int certRespIdx;
     static int measurementRespIdx;
@@ -203,7 +207,7 @@ bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &
     bool flowResult = true;
     switch (expectedResponse)
     {
-      case RequestResponseEnum::RESPONSE_VERSION:
+        case RequestResponseEnum::RESPONSE_VERSION:
         {
             certRespIdx = 0;
             measurementRespIdx = 0;
@@ -215,41 +219,51 @@ bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &
             ver.setMinor(1);
             resp.VersionNumberEntries.push_back(ver);
             // NOLINTNEXTLINE(modernize-avoid-bind)
-            auto fuzzingFunction = std::bind(&FuzzingResponder::fuzzResponseMessageVersion, this, std::placeholders::_1);
-            modified = sendResponseBySource<PacketVersionResponseVar>
-                (resp, fuzzingFunction, config.fuseThrRespMessages.version, 0, MessageHashEnum::M);
+            auto fuzzingFunction =
+                std::bind(&FuzzingResponder::fuzzResponseMessageVersion, this,
+                          std::placeholders::_1);
+            modified = sendResponseBySource<PacketVersionResponseVar>(
+                resp, fuzzingFunction, config.fuseThrRespMessages.version, 0,
+                MessageHashEnum::M);
         }
         break;
 
-      case RequestResponseEnum::RESPONSE_CAPABILITIES:
+        case RequestResponseEnum::RESPONSE_CAPABILITIES:
         {
             updateHash(MessageHashEnum::M);
 
             PacketCapabilitiesResponse resp;
             resp.Header.MessageVersion = MessageVersionEnum::SPDM_1_1;
             resp.Flags = ResponderCapabilitiesFlags::CERT_CAP |
-                        ResponderCapabilitiesFlags::CHAL_CAP |
-                        ResponderCapabilitiesFlags::MEAS_CAP_10;
+                         ResponderCapabilitiesFlags::CHAL_CAP |
+                         ResponderCapabilitiesFlags::MEAS_CAP_10;
 
             // NOLINTNEXTLINE(modernize-avoid-bind)
-            auto fuzzingFunction = std::bind(&FuzzingResponder::fuzzResponseMessageCapabilities, this, std::placeholders::_1);
-            modified = sendResponseBySource<PacketCapabilitiesResponse>
-                (resp, fuzzingFunction, config.fuseThrRespMessages.capability, 0, MessageHashEnum::M);
-
+            auto fuzzingFunction =
+                std::bind(&FuzzingResponder::fuzzResponseMessageCapabilities,
+                          this, std::placeholders::_1);
+            modified = sendResponseBySource<PacketCapabilitiesResponse>(
+                resp, fuzzingFunction, config.fuseThrRespMessages.capability, 0,
+                MessageHashEnum::M);
         }
         break;
 
-      case RequestResponseEnum::RESPONSE_ALGORITHMS:
+        case RequestResponseEnum::RESPONSE_ALGORITHMS:
         {
             updateHash(MessageHashEnum::M);
 
             {
-                if (mbedtls_pk_setup(&pkctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) != 0)
+                if (mbedtls_pk_setup(&pkctx, mbedtls_pk_info_from_type(
+                                                 MBEDTLS_PK_ECKEY)) != 0)
                 {
-                    log.println("!!!! Error mbedtls_pk_setup returned non 0 value");
+                    log.println(
+                        "!!!! Error mbedtls_pk_setup returned non 0 value");
                 }
                 mbedtls_ecp_keypair* ctx = mbedtls_pk_ec(pkctx);
-                if (mbedtls_ecdsa_genkey(ctx, toMbedtlsGroupID(toSignature(algoResp.Min.BaseAsymAlgo)), fRng, nullptr) != 0)
+                if (mbedtls_ecdsa_genkey(ctx,
+                                         toMbedtlsGroupID(toSignature(
+                                             algoResp.Min.BaseAsymAlgo)),
+                                         fRng, nullptr) != 0)
                 {
                     log.println("!!!! Error returned non 0 value");
                 }
@@ -261,25 +275,31 @@ bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &
                 mbedtls_x509write_crt_set_version(&ctx, 3 - 1);
                 mbedtls_x509write_crt_set_issuer_key(&ctx, &pkctx);
                 mbedtls_x509write_crt_set_subject_key(&ctx, &pkctx);
-                mbedtls_x509write_crt_set_issuer_name(&ctx, "CN=CA,O=mbed TLS,C=UK");
-                mbedtls_x509write_crt_set_validity(&ctx, "20010101000000", "20301231235959");
-                mbedtls_x509write_crt_set_md_alg(&ctx, toMbedtls(toHash(algoResp.Min.BaseHashAlgo)));
+                mbedtls_x509write_crt_set_issuer_name(&ctx,
+                                                      "CN=CA,O=mbed TLS,C=UK");
+                mbedtls_x509write_crt_set_validity(&ctx, "20010101000000",
+                                                   "20301231235959");
+                mbedtls_x509write_crt_set_md_alg(
+                    &ctx, toMbedtls(toHash(algoResp.Min.BaseHashAlgo)));
 
                 std::vector<uint8_t> buf;
                 buf.resize(1024);
                 std::fill(buf.begin(), buf.end(), 0);
 
-                int ret = mbedtls_x509write_crt_der(&ctx, buf.data(), buf.size(), fRng,
-                                                    nullptr);
+                int ret = mbedtls_x509write_crt_der(&ctx, buf.data(),
+                                                    buf.size(), fRng, nullptr);
 
                 if (ret < 0)
                 {
-                    mbedtlsPrintErrorLine(log, "mbedtls_x509write_crt_der()", ret);
+                    mbedtlsPrintErrorLine(log, "mbedtls_x509write_crt_der()",
+                                          ret);
                 }
                 else
                 {
-                    std::span<const uint8_t, std::dynamic_extent> bufDer(std::prev(buf.end(), ret), std::end(buf));
-                    log.println("mbedtls_x509write_crt_der() len: ", ret, ", der: ", bufDer);
+                    std::span<const uint8_t, std::dynamic_extent> bufDer(
+                        std::prev(buf.end(), ret), std::end(buf));
+                    log.println("mbedtls_x509write_crt_der() len: ", ret,
+                                ", der: ", bufDer);
                 }
 
                 LOCAL_ASSERT_MBEDTLS_0(mbedtls_x509_crt_parse_der(
@@ -287,70 +307,88 @@ bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &
                 mbedtls_x509write_crt_free(&ctx);
             }
             {
-                digestResp.Min.Header.MessageVersion = MessageVersionEnum::SPDM_1_1;
-                certResp.Min.Header.MessageVersion = MessageVersionEnum::SPDM_1_1;
+                digestResp.Min.Header.MessageVersion =
+                    MessageVersionEnum::SPDM_1_1;
+                certResp.Min.Header.MessageVersion =
+                    MessageVersionEnum::SPDM_1_1;
 
                 {
                     std::vector<uint8_t>& certBuf = certResp.CertificateVector;
                     certBuf.resize(sizeof(PacketCertificateChain));
 
                     std::vector<uint8_t> rootCert(caCert.raw.len);
-                    // NOLINTNEXTLINE cppcoreguidelines-pro-bounds-pointer-arithmetic
+                    // NOLINTNEXTLINE
+                    // cppcoreguidelines-pro-bounds-pointer-arithmetic
                     std::copy(caCert.raw.p, caCert.raw.p + caCert.raw.len,
-                            rootCert.begin());
+                              rootCert.begin());
 
                     std::vector<uint8_t> rootCertHash;
-                    HashClass::compute(rootCertHash, toHash(algoResp.Min.BaseHashAlgo),
-                                    rootCert);
+                    HashClass::compute(rootCertHash,
+                                       toHash(algoResp.Min.BaseHashAlgo),
+                                       rootCert);
 
                     std::copy(rootCertHash.begin(), rootCertHash.end(),
-                            std::back_inserter(certBuf));
+                              std::back_inserter(certBuf));
                     std::copy(rootCert.begin(), rootCert.end(),
-                            std::back_inserter(certBuf));
+                              std::back_inserter(certBuf));
                     {
                         PacketCertificateChain chain;
                         chain.Length = certBuf.size();
                         size_t off = 0;
-                        LOCAL_ASSERT_EQ(packetEncodeInternal(chain, certBuf, off), RetStat::OK);
+                        LOCAL_ASSERT_EQ(
+                            packetEncodeInternal(chain, certBuf, off),
+                            RetStat::OK);
                     }
                     std::vector<uint8_t>& digest = digestResp.Digests[0];
                     digest.resize(info.BaseHashSize);
-                    HashClass::compute(digest, toHash(algoResp.Min.BaseHashAlgo), certBuf);
+                    HashClass::compute(
+                        digest, toHash(algoResp.Min.BaseHashAlgo), certBuf);
                 }
                 // NOLINTNEXTLINE(modernize-avoid-bind)
-                auto fuzzingFunction = std::bind(&FuzzingResponder::fuzzResponseMessageAlgorithms, this, std::placeholders::_1);
-                modified = sendResponseBySource<PacketAlgorithmsResponseVar>
-                    (algoResp, fuzzingFunction, config.fuseThrRespMessages.algorithms, 0, MessageHashEnum::M);
+                auto fuzzingFunction =
+                    std::bind(&FuzzingResponder::fuzzResponseMessageAlgorithms,
+                              this, std::placeholders::_1);
+                modified = sendResponseBySource<PacketAlgorithmsResponseVar>(
+                    algoResp, fuzzingFunction,
+                    config.fuseThrRespMessages.algorithms, 0,
+                    MessageHashEnum::M);
             }
         }
         break;
 
-      case RequestResponseEnum::RESPONSE_DIGESTS:
+        case RequestResponseEnum::RESPONSE_DIGESTS:
         {
             updateHash(MessageHashEnum::M);
             digestResp.finalize();
-            //sendMessage(digestResp, MessageHashEnum::M);
-            // NOLINTNEXTLINE(modernize-avoid-bind)
-            auto fuzzingFunction = std::bind(&FuzzingResponder::fuzzResponseMessageDigest, this, std::placeholders::_1);
-            modified = sendResponseBySource<PacketDigestsResponseVar>
-                (digestResp, fuzzingFunction, config.fuseThrRespMessages.digests, 0, MessageHashEnum::M);
+            // sendMessage(digestResp, MessageHashEnum::M);
+            //  NOLINTNEXTLINE(modernize-avoid-bind)
+            auto fuzzingFunction =
+                std::bind(&FuzzingResponder::fuzzResponseMessageDigest, this,
+                          std::placeholders::_1);
+            modified = sendResponseBySource<PacketDigestsResponseVar>(
+                digestResp, fuzzingFunction, config.fuseThrRespMessages.digests,
+                0, MessageHashEnum::M);
         }
         break;
 
-      case RequestResponseEnum::RESPONSE_CERTIFICATE:
+        case RequestResponseEnum::RESPONSE_CERTIFICATE:
         {
-            std::cerr<<"Sending cert response" << std::endl;
+            std::cerr << "Sending cert response" << std::endl;
             updateHash(MessageHashEnum::M);
             certResp.finalize();
-            //sendMessage(certResp, MessageHashEnum::M);
-            // NOLINTNEXTLINE(modernize-avoid-bind)
-            auto fuzzingFunction = std::bind(&FuzzingResponder::fuzzResponseMessageCertificate, this, std::placeholders::_1);
-            modified = sendResponseBySource<PacketCertificateResponseVar>
-                (certResp, fuzzingFunction, config.fuseThrRespMessages.certificate, certRespIdx++, MessageHashEnum::M);
+            // sendMessage(certResp, MessageHashEnum::M);
+            //  NOLINTNEXTLINE(modernize-avoid-bind)
+            auto fuzzingFunction =
+                std::bind(&FuzzingResponder::fuzzResponseMessageCertificate,
+                          this, std::placeholders::_1);
+            modified = sendResponseBySource<PacketCertificateResponseVar>(
+                certResp, fuzzingFunction,
+                config.fuseThrRespMessages.certificate, certRespIdx++,
+                MessageHashEnum::M);
         }
         break;
 
-      case RequestResponseEnum::RESPONSE_CHALLENGE_AUTH:
+        case RequestResponseEnum::RESPONSE_CHALLENGE_AUTH:
         {
             updateHash(MessageHashEnum::M);
 
@@ -383,11 +421,14 @@ bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &
             }
 
             resp.finalize();
-            //sendMessage(resp);
-            // NOLINTNEXTLINE(modernize-avoid-bind)
-            auto fuzzingFunction = std::bind(&FuzzingResponder::fuzzResponseMessageChallengeAuth, this, std::placeholders::_1);
-            modified = sendResponseBySource<PacketChallengeAuthResponseVar>
-                (resp, fuzzingFunction, config.fuseThrRespMessages.challengeAuth, 0);
+            // sendMessage(resp);
+            //  NOLINTNEXTLINE(modernize-avoid-bind)
+            auto fuzzingFunction =
+                std::bind(&FuzzingResponder::fuzzResponseMessageChallengeAuth,
+                          this, std::placeholders::_1);
+            modified = sendResponseBySource<PacketChallengeAuthResponseVar>(
+                resp, fuzzingFunction, config.fuseThrRespMessages.challengeAuth,
+                0);
             break;
         }
 
@@ -410,8 +451,9 @@ bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &
                     fillPseudoRandom(field.ValueVector);
 
                     LOCAL_ASSERT_EQ(field.finalize(), RetStat::OK);
-                    LOCAL_ASSERT_EQ(packetEncode(field, block.MeasurementVector),
-                            RetStat::OK);
+                    LOCAL_ASSERT_EQ(
+                        packetEncode(field, block.MeasurementVector),
+                        RetStat::OK);
                 }
                 LOCAL_ASSERT_EQ(block.finalize(), RetStat::OK);
                 resp.MeasurementBlockVector.emplace_back(block);
@@ -438,21 +480,24 @@ bool FuzzingResponder::sendResponse(RequestResponseEnum expectedResponse, bool &
 
             resp.finalize();
 
-            //sendMessage(resp);
-            // NOLINTNEXTLINE(modernize-avoid-bind)
-            auto fuzzingFunction = std::bind(&FuzzingResponder::fuzzResponseMessageMeasurements, this, std::placeholders::_1);
-            modified = sendResponseBySource<PacketMeasurementsResponseVar>
-                (resp, fuzzingFunction, config.fuseThrRespMessages.measurements, measurementRespIdx);
+            // sendMessage(resp);
+            //  NOLINTNEXTLINE(modernize-avoid-bind)
+            auto fuzzingFunction =
+                std::bind(&FuzzingResponder::fuzzResponseMessageMeasurements,
+                          this, std::placeholders::_1);
+            modified = sendResponseBySource<PacketMeasurementsResponseVar>(
+                resp, fuzzingFunction, config.fuseThrRespMessages.measurements,
+                measurementRespIdx);
 
             break;
         }
 
-      default:
-        log.print("Wrong connection state = ");
-        log.print(expectedResponse);
-        log.println(__LINE__);
-        flowResult = false;
-        break;
+        default:
+            log.print("Wrong connection state = ");
+            log.print(expectedResponse);
+            log.println(__LINE__);
+            flowResult = false;
+            break;
     }
     return flowResult;
 }
@@ -463,7 +508,7 @@ bool FuzzingResponder::doRandomize(WrapperConfig::Threshold threshold)
     {
         return false;
     }
-    uint32_t tmp=0;
+    uint32_t tmp = 0;
     getFuzzingData(tmp);
     return threshold <= tmp;
 }
@@ -477,10 +522,10 @@ bool FuzzingResponder::doRandomize(WrapperConfig::Threshold threshold)
  * @return true is header was modified
  * @return false header wasn't modified
  */
-bool FuzzingResponder::fuzzMsgHeader(PacketMessageHeader &header, bool doAlter)
+bool FuzzingResponder::fuzzMsgHeader(PacketMessageHeader& header, bool doAlter)
 {
     bool result = false;
-    uint32_t randWord {};
+    uint32_t randWord{};
     if (getFuzzingData(randWord) && config.alterHeaderThr.all <= randWord)
     {
         ;
@@ -490,7 +535,8 @@ bool FuzzingResponder::fuzzMsgHeader(PacketMessageHeader &header, bool doAlter)
         doAlter = false;
     }
 
-    if (getFuzzingData(randWord) && doAlter && config.alterHeaderThr.version <= randWord)
+    if (getFuzzingData(randWord) && doAlter &&
+        config.alterHeaderThr.version <= randWord)
     {
         result = true;
         getFuzzingData(randWord);
@@ -501,7 +547,8 @@ bool FuzzingResponder::fuzzMsgHeader(PacketMessageHeader &header, bool doAlter)
         dropFuzzingData(1);
     }
 
-    if (getFuzzingData(randWord) && doAlter && config.alterHeaderThr.messageType <= randWord)
+    if (getFuzzingData(randWord) && doAlter &&
+        config.alterHeaderThr.messageType <= randWord)
     {
         result = true;
         getFuzzingData(randWord);
@@ -512,7 +559,8 @@ bool FuzzingResponder::fuzzMsgHeader(PacketMessageHeader &header, bool doAlter)
         dropFuzzingData(1);
     }
 
-    if (getFuzzingData(randWord) && doAlter && config.alterHeaderThr.param <= randWord)
+    if (getFuzzingData(randWord) && doAlter &&
+        config.alterHeaderThr.param <= randWord)
     {
         result = true;
         getFuzzingData(header.Param1);
@@ -522,7 +570,8 @@ bool FuzzingResponder::fuzzMsgHeader(PacketMessageHeader &header, bool doAlter)
         dropFuzzingData(1);
     }
 
-    if (getFuzzingData(randWord) && doAlter && config.alterHeaderThr.param <= randWord)
+    if (getFuzzingData(randWord) && doAlter &&
+        config.alterHeaderThr.param <= randWord)
     {
         result = true;
         getFuzzingData(header.Param2);
@@ -534,20 +583,22 @@ bool FuzzingResponder::fuzzMsgHeader(PacketMessageHeader &header, bool doAlter)
     return result;
 }
 
-bool FuzzingResponder::fuzzResponseMessageVersion(PacketVersionResponseVar &msg)
+bool FuzzingResponder::fuzzResponseMessageVersion(PacketVersionResponseVar& msg)
 {
     if (!config.fuseThrRespMessages.version.enabled)
     {
-        return false; //Fuzing this message is disabled, don't read instructions
+        return false; // Fuzing this message is disabled, don't read
+                      // instructions
     }
 
     bool result = false;
-    uint8_t randByte {};
+    uint8_t randByte{};
 
     auto fuzzData = getFuzzingData(randByte);
-    const bool doAlter =( fuzzData && config.fuseThrRespMessages.version <= randByte);
-    const bool doAlterData =(doAlter && getFuzzingData(randByte)
-                    && config.alterDataThr <= randByte);
+    const bool doAlter =
+        (fuzzData && config.fuseThrRespMessages.version <= randByte);
+    const bool doAlterData = (doAlter && getFuzzingData(randByte) &&
+                              config.alterDataThr <= randByte);
 
     result = fuzzMsgHeader(msg.Min.Header, doAlter);
 
@@ -561,7 +612,7 @@ bool FuzzingResponder::fuzzResponseMessageVersion(PacketVersionResponseVar &msg)
         dropFuzzingData(sizeof(msg.Min.Reserved));
     }
 
-    for(auto &verItem : msg.VersionNumberEntries)
+    for (auto& verItem : msg.VersionNumberEntries)
     {
         if (doAlterData)
         {
@@ -577,19 +628,21 @@ bool FuzzingResponder::fuzzResponseMessageVersion(PacketVersionResponseVar &msg)
     return result;
 }
 
-bool FuzzingResponder::fuzzResponseMessageCapabilities(PacketCapabilitiesResponse &msg)
+bool FuzzingResponder::fuzzResponseMessageCapabilities(
+    PacketCapabilitiesResponse& msg)
 {
     if (!config.fuseThrRespMessages.capability.enabled)
     {
-        return false; //Fuzing this message is disabled, don't read instructions
+        return false; // Fuzing this message is disabled, don't read
+                      // instructions
     }
     bool result = false;
-    uint32_t randByte {};
+    uint32_t randByte{};
 
-    const bool doAlter = (getFuzzingData(randByte)
-                   && config.fuseThrRespMessages.capability <= randByte);
-    const bool doAlterData =(doAlter && getFuzzingData(randByte)
-                    && config.alterDataThr <= randByte);
+    const bool doAlter = (getFuzzingData(randByte) &&
+                          config.fuseThrRespMessages.capability <= randByte);
+    const bool doAlterData = (doAlter && getFuzzingData(randByte) &&
+                              config.alterDataThr <= randByte);
 
     result = fuzzMsgHeader(msg.Header, doAlter);
     if (doAlterData)
@@ -635,21 +688,23 @@ bool FuzzingResponder::fuzzResponseMessageCapabilities(PacketCapabilitiesRespons
     return result;
 }
 
-bool FuzzingResponder::fuzzResponseMessageAlgorithms(PacketAlgorithmsResponseVar &msg)
+bool FuzzingResponder::fuzzResponseMessageAlgorithms(
+    PacketAlgorithmsResponseVar& msg)
 {
     if (!config.fuseThrRespMessages.algorithms.enabled)
     {
-        return false; //Fuzing this message is disabled, don't read instructions
+        return false; // Fuzing this message is disabled, don't read
+                      // instructions
     }
     bool result = false;
-    uint8_t randByte {};
+    uint8_t randByte{};
 
     auto fuzzData = getFuzzingData(randByte);
-    const bool doAlter = (fuzzData
-                   && config.fuseThrRespMessages.algorithms <= randByte);
+    const bool doAlter =
+        (fuzzData && config.fuseThrRespMessages.algorithms <= randByte);
 
-    const bool doAlterData =(doAlter && getFuzzingData(randByte)
-                    && config.alterDataThr <= randByte);
+    const bool doAlterData = (doAlter && getFuzzingData(randByte) &&
+                              config.alterDataThr <= randByte);
 
     result = fuzzMsgHeader(msg.Min.Header, doAlter);
 
@@ -699,36 +754,48 @@ bool FuzzingResponder::fuzzResponseMessageAlgorithms(PacketAlgorithmsResponseVar
         dropFuzzingData(sizeof(msg.Min.Reserved4));
     }
 
-    unsigned char vectSize {};
+    unsigned char vectSize{};
     static constexpr auto vecMax = 16U;
-    if (doAlterData) {
+    if (doAlterData)
+    {
         result = true;
         getFuzzingData(vectSize);
         vectSize %= vecMax;
-    } else {
+    }
+    else
+    {
         dropFuzzingData(sizeof(vectSize));
     }
     msg.PacketReqAlgVector.resize(vectSize);
-    for(auto& alg : msg.PacketReqAlgVector) {
-        unsigned char randBVal {};
-        if (getFuzzingData(randByte) && doAlter && config.alterDataThr <= randByte) {
+    for (auto& alg : msg.PacketReqAlgVector)
+    {
+        unsigned char randBVal{};
+        if (getFuzzingData(randByte) && doAlter &&
+            config.alterDataThr <= randByte)
+        {
             result = true;
             getFuzzingData(randBVal);
             alg.AlgType = static_cast<AlgTypeEnum>(randBVal);
-        } else {
+        }
+        else
+        {
             dropFuzzingData(sizeof(randBVal));
         }
-        unsigned char nAlgCnt {};
+        unsigned char nAlgCnt{};
         static const auto maxNAlg = alg.AlgSupported.max_size();
-        if (doAlterData) {
+        if (doAlterData)
+        {
             result = true;
             getFuzzingData(nAlgCnt);
             nAlgCnt %= maxNAlg;
-        } else {
+        }
+        else
+        {
             dropFuzzingData(sizeof(nAlgCnt));
         }
         alg.setFixedAlgCount(nAlgCnt);
-        for(int na=0; na<nAlgCnt; ++na) {
+        for (int na = 0; na < nAlgCnt; ++na)
+        {
             if (doAlterData)
             {
                 result = true;
@@ -743,34 +810,40 @@ bool FuzzingResponder::fuzzResponseMessageAlgorithms(PacketAlgorithmsResponseVar
     return result;
 }
 
-bool FuzzingResponder::fuzzResponseMessageDigest(PacketDigestsResponseVar &msg)
+bool FuzzingResponder::fuzzResponseMessageDigest(PacketDigestsResponseVar& msg)
 {
     if (!config.fuseThrRespMessages.digests.enabled)
     {
-        return false; //Fuzing this message is disabled, don't read instructions
+        return false; // Fuzing this message is disabled, don't read
+                      // instructions
     }
 
     bool result = false;
-    uint8_t randByte {};
+    uint8_t randByte{};
 
-    bool doAlter = (getFuzzingData(randByte)
-                   && config.fuseThrRespMessages.digests <= randByte);
-    const bool doAlterData =(doAlter && getFuzzingData(randByte)
-                    && config.alterDataThr <= randByte);
+    bool doAlter = (getFuzzingData(randByte) &&
+                    config.fuseThrRespMessages.digests <= randByte);
+    const bool doAlterData = (doAlter && getFuzzingData(randByte) &&
+                              config.alterDataThr <= randByte);
 
     result = fuzzMsgHeader(msg.Min.Header, doAlter);
 
-    for( auto& dig : msg.Digests ) {
-        uint8_t vectSize {};
+    for (auto& dig : msg.Digests)
+    {
+        uint8_t vectSize{};
         // Get the final vector length
-        if (doAlterData) {
+        if (doAlterData)
+        {
             result = true;
             getFuzzingData(vectSize);
-        } else {
+        }
+        else
+        {
             dropFuzzingData(sizeof(vectSize));
         }
         dig.resize(vectSize);
-        for(auto &val : dig) {
+        for (auto& val : dig)
+        {
             if (doAlterData)
             {
                 result = true;
@@ -785,20 +858,22 @@ bool FuzzingResponder::fuzzResponseMessageDigest(PacketDigestsResponseVar &msg)
     return result;
 }
 
-bool FuzzingResponder::fuzzResponseMessageCertificate(PacketCertificateResponseVar &msg)
+bool FuzzingResponder::fuzzResponseMessageCertificate(
+    PacketCertificateResponseVar& msg)
 {
     if (!config.fuseThrRespMessages.certificate.enabled)
     {
-        return false; //Fuzing this message is disabled, don't read instructions
+        return false; // Fuzing this message is disabled, don't read
+                      // instructions
     }
     bool result = false;
-    uint8_t randByte {};
+    uint8_t randByte{};
     auto fuzzData = getFuzzingData(randByte);
-    bool doAlter = ( fuzzData
-                   && config.fuseThrRespMessages.certificate <= randByte);
+    bool doAlter =
+        (fuzzData && config.fuseThrRespMessages.certificate <= randByte);
 
-    const bool doAlterData =(doAlter && getFuzzingData(randByte)
-                    && config.alterDataThr <= randByte);
+    const bool doAlterData = (doAlter && getFuzzingData(randByte) &&
+                              config.alterDataThr <= randByte);
 
     result = fuzzMsgHeader(msg.Min.Header, doAlter);
 
@@ -814,12 +889,13 @@ bool FuzzingResponder::fuzzResponseMessageCertificate(PacketCertificateResponseV
     if (doAlterData)
     {
         // Get the final vector length
-        uint16_t vectSize {};
+        uint16_t vectSize{};
         if (getFuzzingData(vectSize))
         {
             vectSize &= 0x3ff;
             msg.CertificateVector.resize(vectSize);
-            for (auto &val : msg.CertificateVector) {
+            for (auto& val : msg.CertificateVector)
+            {
                 getFuzzingData(val);
             }
         }
@@ -828,25 +904,27 @@ bool FuzzingResponder::fuzzResponseMessageCertificate(PacketCertificateResponseV
     return result;
 }
 
-bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthResponseVar &msg)
+bool FuzzingResponder::fuzzResponseMessageChallengeAuth(
+    PacketChallengeAuthResponseVar& msg)
 {
     if (!config.fuseThrRespMessages.challengeAuth.enabled)
     {
-        return false; //Fuzing this message is disabled, don't read instructions
+        return false; // Fuzing this message is disabled, don't read
+                      // instructions
     }
     bool result = false;
-    uint32_t randWord {};
+    uint32_t randWord{};
 
-    bool doAlter = (getFuzzingData(randWord)
-                   && config.fuseThrRespMessages.measurements <= randWord);
-
+    bool doAlter = (getFuzzingData(randWord) &&
+                    config.fuseThrRespMessages.measurements <= randWord);
 
     // Min part
     result = fuzzMsgHeader(msg.Min.Header, doAlter);
 
     // Variable len part nonce_array_32 Nonce = {0};
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespChallengeAuthentication.nonce <= randWord);
-    for (auto &nonceVal : msg.Nonce)
+    doAlter = (getFuzzingData(randWord) &&
+               config.fuseRespChallengeAuthentication.nonce <= randWord);
+    for (auto& nonceVal : msg.Nonce)
     {
         getFuzzingData(randWord);
         if (doAlter)
@@ -855,14 +933,16 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
         }
     }
 
-// Variable len part std::vector<uint8_t> CertChainHashVector;
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespChallengeAuthentication.hashChain <= randWord);
+    // Variable len part std::vector<uint8_t> CertChainHashVector;
+    doAlter = (getFuzzingData(randWord) &&
+               config.fuseRespChallengeAuthentication.hashChain <= randWord);
     getFuzzingData(randWord);
     if (doAlter)
     {
         srand(randWord);
         // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-        if (config.fuseRespChallengeAuthentication.hashChainLen <= (uint32_t) rand())
+        if (config.fuseRespChallengeAuthentication.hashChainLen <=
+            (uint32_t)rand())
         {
 
             // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
@@ -872,11 +952,12 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
                 result |= true;
                 msg.CertChainHashVector.resize(newLen);
             }
-            for (uint8_t &val : msg.CertChainHashVector)
+            for (uint8_t& val : msg.CertChainHashVector)
             {
 
                 // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-                if (config.fuseRespChallengeAuthentication.hashChainLen <= (uint32_t) rand())
+                if (config.fuseRespChallengeAuthentication.hashChainLen <=
+                    (uint32_t)rand())
                 {
                     // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
                     uint8_t newVal = rand();
@@ -887,15 +968,18 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
         }
     }
 
-// Variable len part std::vector<uint8_t> MeasurementSummaryHashVector;
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespChallengeAuthentication.measurementSummary <= randWord);
+    // Variable len part std::vector<uint8_t> MeasurementSummaryHashVector;
+    doAlter =
+        (getFuzzingData(randWord) &&
+         config.fuseRespChallengeAuthentication.measurementSummary <= randWord);
     getFuzzingData(randWord);
     if (doAlter)
     {
         srand(randWord);
 
         // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-        if (config.fuseRespChallengeAuthentication.measurementSummaryLen <= (uint32_t) rand())
+        if (config.fuseRespChallengeAuthentication.measurementSummaryLen <=
+            (uint32_t)rand())
         {
             // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
             uint8_t newLen = rand();
@@ -904,10 +988,11 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
                 result |= true;
                 msg.MeasurementSummaryHashVector.resize(newLen);
             }
-            for (uint8_t &val : msg.MeasurementSummaryHashVector)
+            for (uint8_t& val : msg.MeasurementSummaryHashVector)
             {
                 // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-                if (config.fuseRespChallengeAuthentication.measurementSummaryVal <= (uint32_t) rand())
+                if (config.fuseRespChallengeAuthentication
+                        .measurementSummaryVal <= (uint32_t)rand())
                 {
                     // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
                     uint8_t newVal = rand();
@@ -918,14 +1003,16 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
         }
     }
 
-// Variable len part std::vector<uint8_t> OpaqueDataVector;
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespChallengeAuthentication.opaque <= randWord);
+    // Variable len part std::vector<uint8_t> OpaqueDataVector;
+    doAlter = (getFuzzingData(randWord) &&
+               config.fuseRespChallengeAuthentication.opaque <= randWord);
     getFuzzingData(randWord);
     if (doAlter)
     {
         srand(randWord);
         // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-        if (config.fuseRespChallengeAuthentication.opaqueLen <= (uint32_t) rand())
+        if (config.fuseRespChallengeAuthentication.opaqueLen <=
+            (uint32_t)rand())
         {
             // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
             uint8_t newLen = rand();
@@ -934,10 +1021,11 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
                 result |= true;
                 msg.OpaqueDataVector.resize(newLen);
             }
-            for (uint8_t &val : msg.OpaqueDataVector)
+            for (uint8_t& val : msg.OpaqueDataVector)
             {
                 // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-                if (config.fuseRespChallengeAuthentication.opaqueVal <= (uint32_t) rand())
+                if (config.fuseRespChallengeAuthentication.opaqueVal <=
+                    (uint32_t)rand())
                 {
                     // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
                     uint8_t newVal = rand();
@@ -947,14 +1035,16 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
             }
         }
     }
-// Variable len part std::vector<uint8_t> SignatureVector;
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespChallengeAuthentication.signature <= randWord);
+    // Variable len part std::vector<uint8_t> SignatureVector;
+    doAlter = (getFuzzingData(randWord) &&
+               config.fuseRespChallengeAuthentication.signature <= randWord);
     getFuzzingData(randWord);
     if (doAlter)
     {
         srand(randWord);
         // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-        if (config.fuseRespChallengeAuthentication.signatureLen <= (uint32_t) rand())
+        if (config.fuseRespChallengeAuthentication.signatureLen <=
+            (uint32_t)rand())
         {
             // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
             uint8_t newLen = rand();
@@ -963,10 +1053,11 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
                 result |= true;
                 msg.SignatureVector.resize(newLen);
             }
-            for (uint8_t &val : msg.SignatureVector)
+            for (uint8_t& val : msg.SignatureVector)
             {
                 // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-                if (config.fuseRespChallengeAuthentication.signatureVal <= (uint32_t) rand())
+                if (config.fuseRespChallengeAuthentication.signatureVal <=
+                    (uint32_t)rand())
                 {
                     // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
                     uint8_t newVal = rand();
@@ -980,11 +1071,12 @@ bool FuzzingResponder::fuzzResponseMessageChallengeAuth(PacketChallengeAuthRespo
     return result;
 }
 
-bool FuzzingResponder::fuzzPacketMeasurementBlockVar(struct PacketMeasurementBlockVar &val, bool doAlter)
+bool FuzzingResponder::fuzzPacketMeasurementBlockVar(
+    struct PacketMeasurementBlockVar& val, bool doAlter)
 {
     bool result = false;
 
-// Min part
+    // Min part
     uint8_t randByte = 0;
     getFuzzingData(randByte);
     if (doAlter)
@@ -1003,7 +1095,8 @@ bool FuzzingResponder::fuzzPacketMeasurementBlockVar(struct PacketMeasurementBlo
     getFuzzingData(randHalfWord);
     if (doAlter)
     {
-        bool changeVectorLen = (config.fuseRespMearurement.measurementBlockLen <= randHalfWord);
+        bool changeVectorLen =
+            (config.fuseRespMearurement.measurementBlockLen <= randHalfWord);
         getFuzzingData(randHalfWord);
         if (changeVectorLen)
         {
@@ -1013,7 +1106,7 @@ bool FuzzingResponder::fuzzPacketMeasurementBlockVar(struct PacketMeasurementBlo
         }
     }
 
-// Variable part
+    // Variable part
 
     uint32_t randWord = 0;
     getFuzzingData(randWord);
@@ -1022,10 +1115,11 @@ bool FuzzingResponder::fuzzPacketMeasurementBlockVar(struct PacketMeasurementBlo
         val.MeasurementVector.resize(val.Min.MeasurementSize);
 
         srand(randWord);
-        for (uint8_t &meas : val.MeasurementVector)
+        for (uint8_t& meas : val.MeasurementVector)
         {
             // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-            if (config.fuseRespMearurement.measurementBlockVal <= (uint32_t) rand())
+            if (config.fuseRespMearurement.measurementBlockVal <=
+                (uint32_t)rand())
             {
                 // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
                 meas = rand();
@@ -1036,24 +1130,27 @@ bool FuzzingResponder::fuzzPacketMeasurementBlockVar(struct PacketMeasurementBlo
     return result;
 }
 
-bool FuzzingResponder::fuzzResponseMessageMeasurements(PacketMeasurementsResponseVar &msg)
+bool FuzzingResponder::fuzzResponseMessageMeasurements(
+    PacketMeasurementsResponseVar& msg)
 {
     if (!config.fuseThrRespMessages.measurements.enabled)
     {
-        return false; //Fuzing this message is disabled, don't read instructions
+        return false; // Fuzing this message is disabled, don't read
+                      // instructions
     }
 
     bool result = false;
-    uint32_t randWord {};
+    uint32_t randWord{};
 
-    bool doAlter = (getFuzzingData(randWord)
-                   && config.fuseThrRespMessages.measurements <= randWord);
+    bool doAlter = (getFuzzingData(randWord) &&
+                    config.fuseThrRespMessages.measurements <= randWord);
 
     result = fuzzMsgHeader(msg.Min.Header, doAlter);
 
-// Variable part     nonce_array_32 Nonce = {0};
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespMearurement.nonce <= randWord);
-    for (auto &nonceVal : msg.Nonce)
+    // Variable part     nonce_array_32 Nonce = {0};
+    doAlter = (getFuzzingData(randWord) &&
+               config.fuseRespMearurement.nonce <= randWord);
+    for (auto& nonceVal : msg.Nonce)
     {
         getFuzzingData(randWord);
         if (doAlter)
@@ -1061,21 +1158,24 @@ bool FuzzingResponder::fuzzResponseMessageMeasurements(PacketMeasurementsRespons
             nonceVal = randWord;
         }
     }
-// Variable part    std::vector<PacketMeasurementBlockVar> MeasurementBlockVector;
-    for (auto &measurementVectorItem : msg.MeasurementBlockVector)
+    // Variable part    std::vector<PacketMeasurementBlockVar>
+    // MeasurementBlockVector;
+    for (auto& measurementVectorItem : msg.MeasurementBlockVector)
     {
-        doAlter =  (getFuzzingData(randWord) && config.fuseRespMearurement.measurementBlock <= randWord);
+        doAlter = (getFuzzingData(randWord) &&
+                   config.fuseRespMearurement.measurementBlock <= randWord);
         result |= fuzzPacketMeasurementBlockVar(measurementVectorItem, doAlter);
     }
 
-// Variable part    std::vector<uint8_t> OpaqueDataVector;
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespMearurement.opaqueData <= randWord);
+    // Variable part    std::vector<uint8_t> OpaqueDataVector;
+    doAlter = (getFuzzingData(randWord) &&
+               config.fuseRespMearurement.opaqueData <= randWord);
     getFuzzingData(randWord);
     if (doAlter)
     {
         srand(randWord);
         // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-        if (config.fuseRespMearurement.opaqueDataLen <= (uint32_t) rand())
+        if (config.fuseRespMearurement.opaqueDataLen <= (uint32_t)rand())
         {
             // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
             uint8_t newLen = rand();
@@ -1084,10 +1184,11 @@ bool FuzzingResponder::fuzzResponseMessageMeasurements(PacketMeasurementsRespons
                 result |= true;
                 msg.OpaqueDataVector.resize(newLen);
             }
-            for (uint8_t &val : msg.OpaqueDataVector)
+            for (uint8_t& val : msg.OpaqueDataVector)
             {
                 // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-                if (config.fuseRespMearurement.opaqueDataVal <= (uint32_t) rand())
+                if (config.fuseRespMearurement.opaqueDataVal <=
+                    (uint32_t)rand())
                 {
                     // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
                     uint8_t newVal = rand();
@@ -1098,14 +1199,15 @@ bool FuzzingResponder::fuzzResponseMessageMeasurements(PacketMeasurementsRespons
         }
     }
 
-// Variable part    std::vector<uint8_t> SignatureVector;
-    doAlter =  (getFuzzingData(randWord) && config.fuseRespMearurement.signature <= randWord);
+    // Variable part    std::vector<uint8_t> SignatureVector;
+    doAlter = (getFuzzingData(randWord) &&
+               config.fuseRespMearurement.signature <= randWord);
     getFuzzingData(randWord);
     if (doAlter)
     {
         srand(randWord);
         // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-        if (config.fuseRespMearurement.signatureLen <= (uint32_t) rand())
+        if (config.fuseRespMearurement.signatureLen <= (uint32_t)rand())
         {
             // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
             uint8_t newLen = rand();
@@ -1114,10 +1216,10 @@ bool FuzzingResponder::fuzzResponseMessageMeasurements(PacketMeasurementsRespons
                 result |= true;
                 msg.SignatureVector.resize(newLen);
             }
-            for (uint8_t &val : msg.SignatureVector)
+            for (uint8_t& val : msg.SignatureVector)
             {
                 // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
-                if (config.fuseRespMearurement.signatureVal <= (uint32_t) rand())
+                if (config.fuseRespMearurement.signatureVal <= (uint32_t)rand())
                 {
                     // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
                     uint8_t newVal = rand();
@@ -1130,9 +1232,9 @@ bool FuzzingResponder::fuzzResponseMessageMeasurements(PacketMeasurementsRespons
     return result;
 }
 
-bool FuzzingResponder::getFuzzingData(uint8_t &value)
+bool FuzzingResponder::getFuzzingData(uint8_t& value)
 {
-    char c {};
+    char c{};
     if (!readDataFun(c))
     {
         return false;
@@ -1143,7 +1245,7 @@ bool FuzzingResponder::getFuzzingData(uint8_t &value)
 
 bool FuzzingResponder::dropFuzzingData(int len)
 {
-    char ignore {};
+    char ignore{};
     while (len > 0)
     {
         if (!readDataFun(ignore))
@@ -1155,10 +1257,10 @@ bool FuzzingResponder::dropFuzzingData(int len)
     return true;
 }
 
-bool FuzzingResponder::getFuzzingData(uint16_t &value)
+bool FuzzingResponder::getFuzzingData(uint16_t& value)
 {
-    char c1 {};
-    char c2 {};
+    char c1{};
+    char c2{};
     if (!readDataFun(c1))
     {
         return false;
@@ -1171,25 +1273,25 @@ bool FuzzingResponder::getFuzzingData(uint16_t &value)
     return true;
 }
 
-bool FuzzingResponder::getFuzzingData(uint32_t &value)
+bool FuzzingResponder::getFuzzingData(uint32_t& value)
 {
-   
-    std::array<char,4> arr {{}};
-    for (auto &cVal : arr)
+
+    std::array<char, 4> arr{{}};
+    for (auto& cVal : arr)
     {
         if (!readDataFun(cVal))
         {
             return false;
         }
     }
-    //Ignore endians
+    // Ignore endians
     std::memcpy(&value, arr.data(), sizeof(value));
     return true;
 }
 
-bool FuzzingResponder::getFuzzingData(uint8_t *buf, size_t len)
+bool FuzzingResponder::getFuzzingData(uint8_t* buf, size_t len)
 {
-    char c {};
+    char c{};
     while (len > 0)
     {
         if (!readDataFun(c))
@@ -1197,15 +1299,15 @@ bool FuzzingResponder::getFuzzingData(uint8_t *buf, size_t len)
             return false;
         }
         len--;
-        //NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         *buf++ = static_cast<uint8_t>(c);
     }
     return true;
 }
 
 int FuzzingResponder::computeSignature(mbedtls_pk_context* pkctx,
-    std::vector<uint8_t>& signature,
-    const std::vector<uint8_t>& message)
+                                       std::vector<uint8_t>& signature,
+                                       const std::vector<uint8_t>& message)
 {
     if (mbedtls_pk_get_type(pkctx) != MBEDTLS_PK_ECKEY)
     {
@@ -1216,8 +1318,9 @@ int FuzzingResponder::computeSignature(mbedtls_pk_context* pkctx,
 
     spdmcpp::mbedtls_mpi_raii sigR, sigS;
 
-    int ret = mbedtls_ecdsa_sign(&ctx->grp, sigR, sigS, &ctx->d, message.data(),
-                                message.size(), FuzzingResponder::fRng, nullptr);
+    int ret =
+        mbedtls_ecdsa_sign(&ctx->grp, sigR, sigS, &ctx->d, message.data(),
+                           message.size(), FuzzingResponder::fRng, nullptr);
     if (ret)
     {
         return ret;
@@ -1232,8 +1335,8 @@ int FuzzingResponder::computeSignature(mbedtls_pk_context* pkctx,
     return ret;
 }
 
-void FuzzingResponder::fillPseudoRandom(std::span<uint8_t, std::dynamic_extent> buf,
-        std::mt19937::result_type seed)
+void FuzzingResponder::fillPseudoRandom(
+    std::span<uint8_t, std::dynamic_extent> buf, std::mt19937::result_type seed)
 {
     std::mt19937 gen(seed);
     std::uniform_int_distribution<uint8_t> distrib(1);
@@ -1247,15 +1350,15 @@ int FuzzingResponder::fRng(void* /*ctx*/, unsigned char* buf, size_t len)
     return 0;
 }
 
-inline int FuzzingResponder::computeSignature(mbedtls_x509_crt* cert,
-                            std::vector<uint8_t>& signature,
-                            const std::vector<uint8_t>& message)
+inline int
+    FuzzingResponder::computeSignature(mbedtls_x509_crt* cert,
+                                       std::vector<uint8_t>& signature,
+                                       const std::vector<uint8_t>& message)
 {
     return computeSignature(&cert->pk, signature, message);
 }
-} // namespace spdmd
+} // namespace spdm_wrapper
 
 #undef LOCAL_ASSERT_EQ
 #undef LOCAL_EXPECT_EQ
 #undef LOCAL_ASSERT_MBEDTLS_0
-

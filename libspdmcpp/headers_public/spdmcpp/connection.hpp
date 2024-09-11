@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 
 #pragma once
 
@@ -328,7 +325,8 @@ class ConnectionClass : public NonCopyable
     /** @brief Capabilities flag for responder capabilities
      *
      */
-    auto getCapabilitiesFlags() const {
+    auto getCapabilitiesFlags() const
+    {
         SPDMCPP_ASSERT(hasInfo(ConnectionInfoEnum::CAPABILITIES));
         return responderCapabilitiesFlags;
     }
@@ -422,7 +420,6 @@ class ConnectionClass : public NonCopyable
     /** @brief Callback for handling incomming events
      */
     [[nodiscard]] RetStat handleEvent(EventClass& event);
-
 
   protected:
     [[nodiscard]] RetStat tryGetVersion();
@@ -609,14 +606,14 @@ class ConnectionClass : public NonCopyable
 
     /**
      * Retry command n times with timeout between packets
-    */
-    RetStat retryTimeout(RetStat lastError, timeout_ms_t timeout=3000,
-                         uint16_t retry=4);
+     */
+    RetStat retryTimeout(RetStat lastError, timeout_ms_t timeout = 3000,
+                         uint16_t retry = 4);
 
     std::vector<uint8_t> SendBuffer;
     timeout_ms_t SendTimeout = 0;
     uint16_t SendRetry = 0;
-    RetStat lastRetryError {};
+    RetStat lastRetryError{};
 
     /** @brief Buffer for the received response from which interpretResponse
      * decodes the packet
@@ -738,8 +735,7 @@ class ConnectionClass : public NonCopyable
     /** @brief The last response we are wating for debug purpose only
      *
      */
-    RequestResponseEnum LastWaitingForResponse =
-        RequestResponseEnum::INVALID;
+    RequestResponseEnum LastWaitingForResponse = RequestResponseEnum::INVALID;
 
     /** @brief Bitmask for which ConnectionInfoEnum we're holding used by
      * markInfo and hasInfo
@@ -809,10 +805,11 @@ class ConnectionClass : public NonCopyable
     const std::string sockPath;
 
     /// Try retry certificate count
-    uint8_t retryCertCount {};
+    uint8_t retryCertCount{};
 
     /// Return true if retry is needed
     static bool checkErrorCodeForRetry(RetStat ec);
+
   public:
     const uint8_t m_eid;
 };

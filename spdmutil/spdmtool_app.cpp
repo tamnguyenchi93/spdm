@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,9 @@
  * limitations under the License.
  */
 
-
-
-
-
+#include <spdm_tool.hpp>
 
 #include <iostream>
-#include <spdm_tool.hpp>
 
 // Tool main looop
 auto main(int argc, char** argv) -> int
@@ -30,15 +26,17 @@ auto main(int argc, char** argv) -> int
     {
         spdmt::SpdmTool app;
         // Parse arguments
-        if(app.parseArgs(argc, argv)) {
+        if (app.parseArgs(argc, argv))
+        {
             return EXIT_FAILURE;
         }
         // Run application
-        if(!app.run()) {
+        if (!app.run())
+        {
             return EXIT_FAILURE;
         }
     }
-    catch(const std::exception& exc)
+    catch (const std::exception& exc)
     {
         std::cerr << "Unhandled exception " << exc.what() << std::endl;
         return EXIT_FAILURE;

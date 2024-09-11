@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-
-
 #pragma once
 
 #include "enumerate_utils.hpp"
+
 #include <sdbusplus/bus.hpp>
 #include <spdmcpp/common.hpp>
 
@@ -28,7 +27,6 @@
 
 namespace spdmt
 {
-
 
 /** @brief Responder info structure used for discovery */
 struct ResponderInfo
@@ -46,20 +44,20 @@ class EnumerateEndpoints
      * Enumerate MCTP SPDM endpoints
      * @param dbusIfc Dbus inteface
      */
-    explicit EnumerateEndpoints( std::string_view dbusIfc);
+    explicit EnumerateEndpoints(std::string_view dbusIfc);
 
     /**
      * @brief Get enumerated responders information
-    */
+     */
     auto& getRespondersInfo() const noexcept
     {
-      return respInfos;
+        return respInfos;
     }
 
   private:
     /** @brief Explore MCTP spdm objects */
     auto enumerateMCTPDBusObjects(sdbusplus::bus::bus& bus,
-                        std::string_view dbusIfc) -> void;
+                                  std::string_view dbusIfc) -> void;
     /** @brief Explore single item */
     auto exploreMctpItem(const sdbusplus::message::object_path& path,
                          const DbusInterfaceMap& ifc) -> void;

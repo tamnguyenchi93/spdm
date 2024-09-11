@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 
 #pragma once
 
@@ -54,7 +50,8 @@ struct PacketMeasurementsResponseMin
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_printMl(log, Header);
             SPDMCPP_LOG_iexprln(log, NumberOfBlocks);
@@ -137,7 +134,8 @@ struct PacketMeasurementsResponseVar // TODO all variable packets don't need
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_printMl(log, Min);
             SPDMCPP_LOG_iexprln(log, Nonce);
@@ -188,10 +186,9 @@ struct PacketMeasurementsResponseVar // TODO all variable packets don't need
     return rs;
 }
 
-[[nodiscard]] inline RetStat
-    packetDecodeInternal(spdmcpp::LogClass& logg, PacketMeasurementsResponseVar& p,
-                         const std::vector<uint8_t>& buf, size_t& off,
-                         const PacketDecodeInfo& info)
+[[nodiscard]] inline RetStat packetDecodeInternal(
+    spdmcpp::LogClass& logg, PacketMeasurementsResponseVar& p,
+    const std::vector<uint8_t>& buf, size_t& off, const PacketDecodeInfo& info)
 {
     auto rs = packetDecodeInternal(logg, p.Min, buf, off);
     if (isError(rs))
@@ -207,15 +204,15 @@ struct PacketMeasurementsResponseVar // TODO all variable packets don't need
         {
             p.MeasurementBlockVector.resize(p.MeasurementBlockVector.size() +
                                             1);
-            rs =
-                packetDecodeInternal(logg,p.MeasurementBlockVector.back(), buf, off);
+            rs = packetDecodeInternal(logg, p.MeasurementBlockVector.back(),
+                                      buf, off);
 
             if (isError(rs))
             {
                 SPDMCPP_LOG_TRACE(logg, p.Min.getMeasurementRecordLength());
                 return rs;
             }
-    }
+        }
         if (off != end)
         {
             return RetStat::ERROR_UNKNOWN;
@@ -251,7 +248,8 @@ struct PacketMeasurementsResponseVar // TODO all variable packets don't need
     {
         p.SignatureVector.resize(info.SignatureSize);
         rs = packetDecodeBasic(logg, p.SignatureVector, buf, off);
-        if(isError(rs)) {
+        if (isError(rs))
+        {
             SPDMCPP_LOG_TRACE(logg, p.Min.getMeasurementRecordLength());
         }
     }

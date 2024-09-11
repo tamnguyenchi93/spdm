@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 #include "connection.hpp"
 
 #pragma once
@@ -28,7 +24,8 @@ namespace spdmcpp
 template <typename T>
 RetStat ConnectionClass::sendRequest(const T& packet, BufEnum bufidx)
 {
-    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational) {
+    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational)
+    {
         Log.iprint("sendRequest(");
         Log.print(typeid(packet).name());
         Log.println("):");
@@ -67,7 +64,8 @@ RetStat ConnectionClass::sendRequest(const T& packet, BufEnum bufidx)
     {
         transport->encodePost(buf, lay);
     }
-    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational) {
+    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational)
+    {
         Log.iprint("Context->IO->write() buf.size() = ");
         Log.println(buf.size());
         Log.iprint("buf = ");
@@ -92,7 +90,8 @@ RetStat ConnectionClass::interpretResponse(T& packet, Targs... fargs)
     {
         if (rs == RetStat::ERROR_WRONG_REQUEST_RESPONSE_CODE)
         {
-            if (Log.logLevel >= spdmcpp::LogClass::Level::Error) {
+            if (Log.logLevel >= spdmcpp::LogClass::Level::Error)
+            {
                 Log.iprint("wrong code is: ");
                 Log.println(packetMessageHeaderGetRequestresponsecode(
                     ResponseBuffer, lay.getEndOffset()));
@@ -100,7 +99,8 @@ RetStat ConnectionClass::interpretResponse(T& packet, Targs... fargs)
         }
         return rs;
     }
-    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational) {
+    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational)
+    {
         Log.iprint("interpretResponse(");
         Log.print(typeid(packet).name());
         Log.println("):");
@@ -112,13 +112,15 @@ RetStat ConnectionClass::interpretResponse(T& packet, Targs... fargs)
 template <typename T>
 RetStat ConnectionClass::setupResponseWait(timeout_ms_t timeout, uint16_t retry)
 {
-    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational) {
+    if (Log.logLevel >= spdmcpp::LogClass::Level::Informational)
+    {
         Log.iprint("asyncResponse(");
         Log.print(typeid(T).name());
         Log.println("):");
     }
-    //SPDMCPP_ASSERT(WaitingForResponse == RequestResponseEnum::INVALID);
-    if(WaitingForResponse != RequestResponseEnum::INVALID) {
+    // SPDMCPP_ASSERT(WaitingForResponse == RequestResponseEnum::INVALID);
+    if (WaitingForResponse != RequestResponseEnum::INVALID)
+    {
         return RetStat::ERROR_RESPONSE;
     }
     SPDMCPP_STATIC_ASSERT(isResponse(T::requestResponseCode));

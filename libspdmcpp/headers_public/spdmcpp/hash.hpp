@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 
 #pragma once
 
@@ -50,8 +46,8 @@ inline HashEnum toHash(BaseHashAlgoFlags flags)
         case BaseHashAlgoFlags::TPM_ALG_SHA_512:
             return HashEnum::TPM_ALG_SHA_512;
             // 			case BaseHashAlgoFlags::TPM_ALG_SHA3_256:	return
-            // HashEnum::TPM_ALG_SHA_;	//TODO support for SHA3 missing from mbedtls...
-            // 			case BaseHashAlgoFlags::TPM_ALG_SHA3_384:	return
+            // HashEnum::TPM_ALG_SHA_;	//TODO support for SHA3 missing from
+            // mbedtls... 			case BaseHashAlgoFlags::TPM_ALG_SHA3_384:	return
             // HashEnum::TPM_ALG_SHA_;
             // 			case BaseHashAlgoFlags::TPM_ALG_SHA3_512:	return
             // HashEnum::TPM_ALG_SHA_;
@@ -74,8 +70,8 @@ inline HashEnum toHash(MeasurementHashAlgoFlags flags)
         case MeasurementHashAlgoFlags::TPM_ALG_SHA_512:
             return HashEnum::TPM_ALG_SHA_512;
             // 			case MeasurementHashAlgoFlags::TPM_ALG_SHA3_256:
-            // return HashEnum::TPM_ALG_SHA_;	//TODO support for SHA3 missing from
-            // mbedtls... 			case
+            // return HashEnum::TPM_ALG_SHA_;	//TODO support for SHA3 missing
+            // from mbedtls... 			case
             // MeasurementHashAlgoFlags::TPM_ALG_SHA3_384: return
             // HashEnum::TPM_ALG_SHA_; 			case
             // MeasurementHashAlgoFlags::TPM_ALG_SHA3_512: return
@@ -214,12 +210,14 @@ class HashClass
 
     /** @brief function used to continue computing the hash with the given data
      */
-    [[nodiscard]] RetStat update(const std::vector<uint8_t>& buf, size_t off = 0,
-                size_t len = std::numeric_limits<size_t>::max())
+    [[nodiscard]] RetStat
+        update(const std::vector<uint8_t>& buf, size_t off = 0,
+               size_t len = std::numeric_limits<size_t>::max())
     {
         if (off > buf.size())
         {
-            std::cerr << "Wrong offset in the buffer: off = " << off <<", buf.size() = " << buf.size() << std::endl;
+            std::cerr << "Wrong offset in the buffer: off = " << off
+                      << ", buf.size() = " << buf.size() << std::endl;
             return RetStat::ERROR_BUFFER_TOO_SMALL;
         }
         len = std::min(len, buf.size() - off);

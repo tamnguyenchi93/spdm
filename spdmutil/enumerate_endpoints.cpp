@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 
 #include "enumerate_endpoints.hpp"
 
@@ -43,14 +39,14 @@ EnumerateEndpoints::EnumerateEndpoints(std::string_view dbusIfc)
     enumerateMCTPDBusObjects(bus, dbusIfc);
 }
 
-
 auto EnumerateEndpoints::enumerateMCTPDBusObjects(sdbusplus::bus::bus& bus,
-        std::string_view dbusIfc) -> void
+                                                  std::string_view dbusIfc)
+    -> void
 {
     constexpr auto interfacePath = "/xyz/openbmc_project/mctp";
-    auto method = bus.new_method_call(std::string(dbusIfc).c_str(), interfacePath,
-                                      "org.freedesktop.DBus.ObjectManager",
-                                      "GetManagedObjects");
+    auto method = bus.new_method_call(
+        std::string(dbusIfc).c_str(), interfacePath,
+        "org.freedesktop.DBus.ObjectManager", "GetManagedObjects");
     auto reply = bus.call(method);
     DbusObjectValueTree objects;
     reply.read(objects);
@@ -68,8 +64,9 @@ auto EnumerateEndpoints::exploreMctpItem(
 {
     if (const auto eid = getEid(ifc); eid)
     {
-        ResponderInfo info { *getEid(ifc), path, getUUID(ifc), getUnixSocketAddress(ifc) };
-        respInfos.emplace_back( info );
+        ResponderInfo info{*getEid(ifc), path, getUUID(ifc),
+                           getUnixSocketAddress(ifc)};
+        respInfos.emplace_back(info);
     }
 }
 
@@ -132,7 +129,8 @@ auto EnumerateEndpoints::getEid(
     return std::nullopt;
 }
 
-auto EnumerateEndpoints::getUUID(const DbusInterfaceMap& interfaces) -> std::string
+auto EnumerateEndpoints::getUUID(const DbusInterfaceMap& interfaces)
+    -> std::string
 {
     try
     {
@@ -157,8 +155,8 @@ auto EnumerateEndpoints::getUUID(const DbusInterfaceMap& interfaces) -> std::str
     return {};
 }
 
-
-auto EnumerateEndpoints::getUnixSocketAddress(const DbusInterfaceMap& interfaces) -> std::string
+auto EnumerateEndpoints::getUnixSocketAddress(
+    const DbusInterfaceMap& interfaces) -> std::string
 {
     try
     {
@@ -171,21 +169,18 @@ auto EnumerateEndpoints::getUnixSocketAddress(const DbusInterfaceMap& interfaces
             {
                 try
                 {
-                    const auto vec = std::get<std::vector<uint8_t>>(addr->second);
+                    const auto vec =
+                        std::get<std::vector<uint8_t>>(addr->second);
                     return {vec.begin(), vec.end()};
                 }
-                catch(const std::exception& e)
-                {
-                }
+                catch (const std::exception& e)
+                {}
             }
         }
     }
-    catch(const std::exception& e)
-    {
-    }
+    catch (const std::exception& e)
+    {}
     return {};
-
 }
- 
 
 } // namespace spdmt

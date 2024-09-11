@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
-
 
 #include "test_helpers.hpp"
 
@@ -41,7 +35,7 @@
 /*
  * Pragma pack is temporary disabled due to bug in LLVM
  * https://www.mail-archive.com/llvm-bugs@lists.llvm.org/msg69115.html
-*/
+ */
 #ifndef __clang__
 using namespace spdmcpp;
 
@@ -105,6 +99,7 @@ enum class MessageHashEnum : uint8_t
 class ConnectionFixture
 {
     static constexpr auto mctpTOBit = 0x08U;
+
   public:
     LogClass logg;
     std::shared_ptr<FixtureIOClass> IO;
@@ -112,10 +107,9 @@ class ConnectionFixture
     ContextClass Context;
     ConnectionClass Connection;
 
-    ConnectionFixture()
-    : logg(std::cout)
-    , IO(std::make_shared<FixtureIOClass>())
-    , Connection(Context, logg, 0,  "pcie")
+    ConnectionFixture() :
+        logg(std::cout), IO(std::make_shared<FixtureIOClass>()),
+        Connection(Context, logg, 0, "pcie")
     {
         Context.registerIo(IO, "pcie");
         Connection.registerTransport(Trans);
@@ -127,7 +121,7 @@ class ConnectionFixture
             Connection.unregisterTransport(Trans);
             Context.unregisterIo("pcie");
         }
-        catch(const std::exception& exc)
+        catch (const std::exception& exc)
         {
             SPDMCPP_ASSERT(false);
         }
@@ -162,7 +156,8 @@ class ConnectionFixture
         if (hashidx < MessageHashEnum::NUM)
         {
             rs = getHash(hashidx).update(buf, off);
-            if(rs != RetStat::OK) {
+            if (rs != RetStat::OK)
+            {
                 return rs;
             }
         }
@@ -198,7 +193,8 @@ class ConnectionFixture
         if (hashidx < MessageHashEnum::NUM)
         {
             rs = getHash(hashidx).update(buf, start);
-            if(isError(rs)) {
+            if (isError(rs))
+            {
                 IO->ReadQueue.pop_back();
                 return rs;
             }
@@ -513,7 +509,6 @@ void testConnectionFlow(BaseAsymAlgoFlags asymAlgo, BaseHashAlgoFlags hashAlgo)
     mbedtls_x509_crt_free(&caCert);
     mbedtls_pk_free(&pkctx);
 }
-
 
 TEST(Connection, FullFlow_ECDSA_256_SHA_256)
 {

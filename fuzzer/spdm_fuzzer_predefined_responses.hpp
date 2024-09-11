@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,39 @@
  * limitations under the License.
  */
 
-
-
-
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <regex>
-#include <vector>
-#include <map>
 #include <filesystem>
+#include <map>
+#include <regex>
+#include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
 class PredefinedResponses
 {
-public:
+  public:
     PredefinedResponses() = default;
 
     bool readFromHexFile(const fs::path& path);
     bool readFromLogFile(const fs::path& path);
 
-    const std::vector<uint8_t>& getResponse(uint8_t msgType, int index = 0) const;
+    const std::vector<uint8_t>& getResponse(uint8_t msgType,
+                                            int index = 0) const;
 
-    bool containsData() const { return responses.size() > 0; }
-    const std::multimap<uint8_t, std::vector<uint8_t>>& getAllResponses() const { return responses; }
+    bool containsData() const
+    {
+        return responses.size() > 0;
+    }
+    const std::multimap<uint8_t, std::vector<uint8_t>>& getAllResponses() const
+    {
+        return responses;
+    }
 
-private:
-    std::vector<uint8_t> readMsgRaw(const std::string &msgStr, size_t pos = 0);
+  private:
+    std::vector<uint8_t> readMsgRaw(const std::string& msgStr, size_t pos = 0);
 
     std::multimap<uint8_t, std::vector<uint8_t>> responses;
     std::vector<uint8_t> empty;

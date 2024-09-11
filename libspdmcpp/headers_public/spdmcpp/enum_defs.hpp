@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 
 #include "enum.hpp"
 
@@ -103,7 +99,6 @@ ENUM_VALUE(MCTPMessageTypeEnum, PLDM, 0x01)
 ENUM_VALUE(MCTPMessageTypeEnum, SPDM, 0x05)
 ENUM_VALUE(MCTPMessageTypeEnum, SECURED, 0x06)
 ENUM_END()
-
 
 ENUM_START(MessageVersionEnum, uint8_t)
 ENUM_VALUE(MessageVersionEnum, UNKNOWN, 0)

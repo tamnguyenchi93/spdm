@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-
-
+#include "spdm_fuzzer_config.hpp"
 
 #include <spdmcpp/common.hpp>
 #include <spdmcpp/connection.hpp>
-
-#include "spdm_fuzzer_config.hpp"
 
 using namespace spdmcpp;
 
@@ -30,14 +27,19 @@ namespace spdm_wrapper
 class Requester
 {
   public:
-    Requester(IOClass &io, ConnectionClass &connection): io(io), connection(connection) {}
+    Requester(IOClass& io, ConnectionClass& connection) :
+        io(io), connection(connection)
+    {}
 
     RetStat startRefreshFlow();
     RetStat handleRecv();
-    inline RequestResponseEnum getExpectedResponse() { return connection.getWaitingForResponse();}
+    inline RequestResponseEnum getExpectedResponse()
+    {
+        return connection.getWaitingForResponse();
+    }
 
   private:
-    IOClass         &io;
-    ConnectionClass &connection;
+    IOClass& io;
+    ConnectionClass& connection;
 };
-} //spdm_wrapper
+} // namespace spdm_wrapper

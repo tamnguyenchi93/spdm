@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,10 @@
  * limitations under the License.
  */
 
-
-
-
-
-
 #include "str_conv.hpp"
 
-namespace spdmt {
+namespace spdmt
+{
 
 using namespace spdmcpp;
 
@@ -114,7 +110,6 @@ std::string hashAlgoToStr(BaseHashAlgoFlags flags)
         }                                                                      \
     } while (0)
 
-
 std::string asymAlgoToStr(BaseAsymAlgoFlags flags)
 {
     if (countBits(flags) > 1)
@@ -136,5 +131,4 @@ std::string asymAlgoToStr(BaseAsymAlgoFlags flags)
 #undef HASH_FLAGS_STR
 #undef xstr
 
-
-}
+} // namespace spdmt

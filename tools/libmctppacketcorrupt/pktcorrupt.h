@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-
-
 #pragma once
-#include <stddef.h>
-#include <stdbool.h>
 #include "apptypes.h"
 #include "error.h"
+
+#include <stdbool.h>
+#include <stddef.h>
 
 //! Initialize corrupt library
 int corrupt_init(void) EXPORT_HIDDEN;
@@ -32,6 +31,6 @@ int corrupt_deinit(void) EXPORT_HIDDEN;
  * @param[in] buf Buffer data len
  * @param[in] buf_size Buffer maximum size
  * @param[in] recv_size Real recv size
-*/
-int corrupt_recv_packet(char *buf, size_t buf_size, size_t recv_size) EXPORT_HIDDEN;
-
+ */
+int corrupt_recv_packet(char* buf, size_t buf_size,
+                        size_t recv_size) EXPORT_HIDDEN;

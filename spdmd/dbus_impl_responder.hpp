@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-
-
-
 #pragma once
 
 #include "config.h"
@@ -25,8 +22,8 @@
 #include "spdmcpp/common.hpp"
 #include "spdmd_app_context.hpp"
 #include "xyz/openbmc_project/Association/Definitions/server.hpp"
-#include "xyz/openbmc_project/SPDM/Responder/server.hpp"
 #include "xyz/openbmc_project/Object/Enable/server.hpp"
+#include "xyz/openbmc_project/SPDM/Responder/server.hpp"
 
 #include <sdbusplus/bus.hpp>
 #include <sdbusplus/server/object.hpp>
@@ -48,8 +45,9 @@ class Responder;
 
 /**
  * @struct Responder creation parameters
-*/
-struct ResponderArgs {
+ */
+struct ResponderArgs
+{
     uint8_t eid;
     std::string uuid;
     std::optional<spdmcpp::TransportMedium> medium;
@@ -66,8 +64,10 @@ struct ResponderArgs {
 class MctpTransportClass : public spdmcpp::MctpTransportClass
 {
   public:
-    MctpTransportClass(uint8_t eid, Responder& resp, spdmcpp::TransportMedium medium) :
-        spdmcpp::MctpTransportClass(eid), transportMedium(medium) ,responder(resp)
+    MctpTransportClass(uint8_t eid, Responder& resp,
+                       spdmcpp::TransportMedium medium) :
+        spdmcpp::MctpTransportClass(eid),
+        transportMedium(medium), responder(resp)
     {}
     ~MctpTransportClass() override = default;
 
@@ -75,7 +75,8 @@ class MctpTransportClass : public spdmcpp::MctpTransportClass
 
     bool clearTimeout() override;
 
-    auto getTransportMedium() {
+    auto getTransportMedium()
+    {
         return transportMedium;
     }
 
@@ -117,9 +118,7 @@ class Responder : public ResponderIntf
     Responder(SpdmdAppContext& appCtx, const std::string& path, uint8_t eid,
               const sdbusplus::message::object_path& mctpPath,
               const sdbusplus::message::object_path& inventPath,
-              spdmcpp::TransportMedium transportMedium,
-              std::string socketPath
-    );
+              spdmcpp::TransportMedium transportMedium, std::string socketPath);
 
     ~Responder() override;
 
@@ -169,13 +168,12 @@ class Responder : public ResponderIntf
 
     SpdmdAppContext& appContext;
 
-    spdmcpp::LogClass &log;
+    spdmcpp::LogClass& log;
     spdmcpp::ConnectionClass connection;
-    MctpTransportClass transport ;
+    MctpTransportClass transport;
     sdbusplus::message::object_path inventoryPath;
     spdmcpp::TransportMedium transportMedium;
     uint8_t eid;
-
 
     spdmcpp::RetStat (Responder::*eventHandler)(spdmcpp::EventClass& event) =
         nullptr;

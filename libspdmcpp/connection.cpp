@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-
-
-
-
-
 #include <spdmcpp/connection.hpp>
 #include <spdmcpp/connection_inl.hpp>
 #include <spdmcpp/context.hpp>
@@ -27,8 +22,8 @@
 #include <spdmcpp/mbedtls_support.hpp>
 
 #include <algorithm>
-#include <fstream>
 #include <bit>
+#include <fstream>
 #include <type_traits>
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
@@ -60,7 +55,8 @@ namespace spdmcpp
 
 ConnectionClass::ConnectionClass(const ContextClass& cont, LogClass& log,
                                  uint8_t eid, std::string sockPath) :
-    context(cont), Log(log), sockPath(std::move(sockPath)), m_eid(eid)
+    context(cont),
+    Log(log), sockPath(std::move(sockPath)), m_eid(eid)
 {
     resetConnection();
 }
@@ -103,7 +99,7 @@ RetStat ConnectionClass::refreshMeasurementsInternal()
 {
     if (MeasurementIndices[255])
     {
-        if (MeasurementIndices.count()!=1)
+        if (MeasurementIndices.count() != 1)
         {
             return RetStat::ERROR_INDICES_INVALID_SIZE;
         }
@@ -226,7 +222,8 @@ RetStat ConnectionClass::parseCertChain(SlotClass& slot,
     std::vector<uint8_t> rootCertHash;
 
     {
-        if (auto hsize = getHashSize(Algorithms.Min.BaseHashAlgo); hsize != invalidFlagSize)
+        if (auto hsize = getHashSize(Algorithms.Min.BaseHashAlgo);
+            hsize != invalidFlagSize)
         {
             rootCertHash.resize(hsize);
         }
@@ -248,7 +245,6 @@ RetStat ConnectionClass::parseCertChain(SlotClass& slot,
     Log.iprint("Full Certificate Chain: ");
     Log.println(
         std::span{cert.begin() + static_cast<ptrdiff_t>(off), cert.end()});
-
 
     slot.MCertificates.clear();
     do
@@ -521,23 +517,21 @@ RetStat ConnectionClass::handleRecv<PacketAlgorithmsResponseVar>()
         rs = RetStat::ERROR_INVALID_RESERVED;
         SPDMCPP_CONNECTION_RS_ERROR_RETURN(rs);
     }
-    if(std::popcount(
-        static_cast<std::underlying_type_t<MeasurementHashAlgoFlags>>
-            (resp.Min.MeasurementHashAlgo))>1)
+    if (std::popcount(
+            static_cast<std::underlying_type_t<MeasurementHashAlgoFlags>>(
+                resp.Min.MeasurementHashAlgo)) > 1)
     {
         rs = RetStat::ERROR_WRONG_ALGO_BITS;
         SPDMCPP_CONNECTION_RS_ERROR_RETURN(rs);
     }
-    if(std::popcount(
-        static_cast<std::underlying_type_t<BaseAsymAlgoFlags>>
-            (resp.Min.BaseAsymAlgo))>1)
+    if (std::popcount(static_cast<std::underlying_type_t<BaseAsymAlgoFlags>>(
+            resp.Min.BaseAsymAlgo)) > 1)
     {
         rs = RetStat::ERROR_WRONG_ALGO_BITS;
         SPDMCPP_CONNECTION_RS_ERROR_RETURN(rs);
     }
-    if(std::popcount(
-        static_cast<std::underlying_type_t<BaseHashAlgoFlags>>
-            (resp.Min.BaseHashAlgo))>1)
+    if (std::popcount(static_cast<std::underlying_type_t<BaseHashAlgoFlags>>(
+            resp.Min.BaseHashAlgo)) > 1)
     {
         rs = RetStat::ERROR_WRONG_ALGO_BITS;
         SPDMCPP_CONNECTION_RS_ERROR_RETURN(rs);
@@ -547,7 +541,8 @@ RetStat ConnectionClass::handleRecv<PacketAlgorithmsResponseVar>()
 
     appendRecvToBuf(BufEnum::A);
 
-    if (auto hsize = getHashSize(resp.Min.BaseHashAlgo); hsize != invalidFlagSize)
+    if (auto hsize = getHashSize(resp.Min.BaseHashAlgo);
+        hsize != invalidFlagSize)
     {
         packetDecodeInfo.BaseHashSize = hsize;
     }
@@ -555,7 +550,8 @@ RetStat ConnectionClass::handleRecv<PacketAlgorithmsResponseVar>()
     {
         SPDMCPP_CONNECTION_RS_ERROR_RETURN(RetStat::ERROR_INVALID_FLAG_SIZE);
     }
-    if (auto ssize=getSignatureSize(resp.Min.BaseAsymAlgo); ssize!=invalidFlagSize)
+    if (auto ssize = getSignatureSize(resp.Min.BaseAsymAlgo);
+        ssize != invalidFlagSize)
     {
         packetDecodeInfo.SignatureSize = ssize;
     }
@@ -682,7 +678,8 @@ RetStat ConnectionClass::handleRecv<PacketCertificateResponseVar>()
     SlotIdx idx = CertificateSlotIdx;
     SlotClass& slot = Slots[idx];
     std::vector<uint8_t>& cert = slot.Certificates;
-    if(resp.Min.PortionLength> getResponseBufferRef().size()) {
+    if (resp.Min.PortionLength > getResponseBufferRef().size())
+    {
         rs = RetStat::ERROR_CERTIFICATE_CHAIN_SIZE_INVALID;
         SPDMCPP_CONNECTION_RS_ERROR_RETURN(rs);
     }
@@ -708,7 +705,7 @@ RetStat ConnectionClass::handleRecv<PacketCertificateResponseVar>()
     rs = parseCertChain(slot, cert);
 
     static constexpr auto numCertRetries = 3U;
-    if(isError(rs) && retryCertCount < numCertRetries)
+    if (isError(rs) && retryCertCount < numCertRetries)
     {
         rs = tryGetCertificate(idx);
         SPDMCPP_CONNECTION_RS_ERROR_RETURN(rs);
@@ -806,7 +803,8 @@ RetStat ConnectionClass::handleRecv<PacketChallengeAuthResponseVar>()
             {
                 if (!buf.empty())
                 {
-                    if(rs = ha.update(buf); rs!=RetStat::OK) {
+                    if (rs = ha.update(buf); rs != RetStat::OK)
+                    {
                         return rs;
                     }
                 }
@@ -955,9 +953,11 @@ RetStat ConnectionClass::handleRecv<PacketMeasurementsResponseVar>()
                         ResponseBuffer.size() - ResponseBufferSPDMOffset -
                             packetDecodeInfo.SignatureSize);*/
 
-        const auto measSize = ResponseBuffer.size() - ResponseBufferSPDMOffset
-            - (skipVerifySignature()?0:packetDecodeInfo.SignatureSize);
-        appendToBuf(BufEnum::L, &ResponseBuffer[ResponseBufferSPDMOffset], measSize);
+        const auto measSize =
+            ResponseBuffer.size() - ResponseBufferSPDMOffset -
+            (skipVerifySignature() ? 0 : packetDecodeInfo.SignatureSize);
+        appendToBuf(BufEnum::L, &ResponseBuffer[ResponseBufferSPDMOffset],
+                    measSize);
 
         if (skipVerifySignature())
         {
@@ -1075,7 +1075,6 @@ RetStat ConnectionClass::handleRecv(EventReceiveClass& event)
 
         WaitingForResponse = RequestResponseEnum::RESPONSE_VERSION;
         return tryGetVersion();
-
     }
 
     // if we're not expecting this response return an error
@@ -1197,29 +1196,30 @@ void ConnectionClass::clearTimeout()
     }
     SendTimeout = 0;
     SendRetry = 0;
-    SPDMCPP_LOG_TRACE_RS(getLog(),RetStat::OK);
+    SPDMCPP_LOG_TRACE_RS(getLog(), RetStat::OK);
 }
 
-
-RetStat ConnectionClass::retryTimeout(RetStat lastError, timeout_ms_t timeout,  uint16_t retry)
+RetStat ConnectionClass::retryTimeout(RetStat lastError, timeout_ms_t timeout,
+                                      uint16_t retry)
 {
     SPDMCPP_LOG_TRACE_FUNC(getLog());
-   WaitingForResponse = LastWaitingForResponse;
+    WaitingForResponse = LastWaitingForResponse;
     lastRetryError = lastError;
     SendRetry = retry;
     SendTimeout = timeout;
-    RetStat rs { RetStat::ERROR_UNKNOWN };
+    RetStat rs{RetStat::ERROR_UNKNOWN};
     if (transport)
     {
         rs = transport->setupTimeout(SendTimeout);
-        SPDMCPP_LOG_TRACE_RS(getLog(),rs);
+        SPDMCPP_LOG_TRACE_RS(getLog(), rs);
     }
     return rs;
 }
 
 bool ConnectionClass::checkErrorCodeForRetry(RetStat ec)
 {
-    switch(ec) {
+    switch (ec)
+    {
         case RetStat::ERROR_WRONG_REQUEST_RESPONSE_CODE:
         case RetStat::ERROR_UNKNOWN_REQUEST_RESPONSE_CODE:
         case RetStat::ERROR_BUFFER_TOO_SMALL:

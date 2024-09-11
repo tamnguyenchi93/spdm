@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-
-
-
-
 #include "../../packet.hpp"
 
 #pragma once
-
 
 #ifdef SPDMCPP_PACKET_HPP
 
@@ -94,14 +89,16 @@ struct PacketReqAlgStruct
     }
     void setReqBaseAsymAlg(BaseAsymAlgoFlags flags)
     {
-        auto bits = static_cast<std::underlying_type_t<BaseAsymAlgoFlags>>(flags);
+        auto bits =
+            static_cast<std::underlying_type_t<BaseAsymAlgoFlags>>(flags);
         AlgSupported[0] = bits;
         AlgSupported[1] = (bits >> 16);
     }
 
     void print(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             log.print("<");
             SPDMCPP_LOG_expr(log, AlgType);
             log.print("   FixedAlgCount: ");
@@ -151,8 +148,8 @@ struct PacketReqAlgStruct
     return RetStat::OK;
 }
 [[nodiscard]] inline RetStat
-    packetDecodeInternal(spdmcpp::LogClass& logg,PacketReqAlgStruct& p, const std::vector<uint8_t>& buf,
-                         size_t& off)
+    packetDecodeInternal(spdmcpp::LogClass& logg, PacketReqAlgStruct& p,
+                         const std::vector<uint8_t>& buf, size_t& off)
 {
     auto rs = packetDecodeBasic(logg, p.AlgType, buf, off);
     if (isError(rs))
@@ -213,7 +210,8 @@ struct PacketNegotiateAlgorithmsRequestMin
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_printMl(log, Header);
             SPDMCPP_LOG_iexprln(log, Length);
@@ -300,7 +298,8 @@ struct PacketNegotiateAlgorithmsRequestVar
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_printMl(log, Min);
 
@@ -340,10 +339,11 @@ struct PacketNegotiateAlgorithmsRequestVar
 }
 
 [[nodiscard]] inline RetStat
-    packetDecodeInternal(spdmcpp::LogClass& logg,PacketNegotiateAlgorithmsRequestVar& p,
+    packetDecodeInternal(spdmcpp::LogClass& logg,
+                         PacketNegotiateAlgorithmsRequestVar& p,
                          const std::vector<uint8_t>& buf, size_t& off)
 {
-    auto rs = packetDecodeInternal(logg,p.Min, buf, off);
+    auto rs = packetDecodeInternal(logg, p.Min, buf, off);
 
     // TODO HANDLE ExtAsymCount and ExtHashCount!!!
 

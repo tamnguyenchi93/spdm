@@ -1,9 +1,9 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0 Licensed
+ * under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -18,10 +18,11 @@
 
 #include "spdmcpp/common.hpp"
 #include "spdmd_app.hpp"
-#include <unordered_set>
-#include <deque>
 
 #include <sdbusplus/bus/match.hpp>
+
+#include <deque>
+#include <unordered_set>
 
 namespace spdmd
 {
@@ -73,7 +74,8 @@ class MctpDiscovery
 #endif
     /** @brief Used to watch for new MCTP endpoints */
     unique_ptr<sdbusplus::bus::match_t> mctpMatch;
-    std::unordered_map<std::string, unique_ptr<dbus::ServiceHelper>> mctpControlServices;
+    std::unordered_map<std::string, unique_ptr<dbus::ServiceHelper>>
+        mctpControlServices;
 
     /** @brief Used to watch for new CCSM interface */
     unique_ptr<sdbusplus::bus::match_t> ccsmChange;
@@ -85,11 +87,14 @@ class MctpDiscovery
 #endif
 
     /** @brief Called when a new mctp endpoint is discovered */
-    void mctpNewObjectSignal(const sdbusplus::message::object_path& objectPath, const dbus::InterfaceMap& interfaces);
+    void mctpNewObjectSignal(const sdbusplus::message::object_path& objectPath,
+                             const dbus::InterfaceMap& interfaces);
 
 #ifndef DISCOVERY_ONLY_FROM_MCTP_CONTROL
     /** @brief Called when a new PLDM inventory object is discovered */
-    void inventoryNewObjectSignal(const sdbusplus::message::object_path& objectPath, const dbus::InterfaceMap& interfaces);
+    void inventoryNewObjectSignal(
+        const sdbusplus::message::object_path& objectPath,
+        const dbus::InterfaceMap& interfaces);
 #endif
 
     /** @brief Try calling spdmApp.ConnectMCTP() */
@@ -130,8 +135,7 @@ class MctpDiscovery
         "xyz.openbmc_project.Common.UnixSocket";
 
     /** @brief MCTP transport sock type */
-    static constexpr auto mctpTransportSockIntfType =
-        "Address";
+    static constexpr auto mctpTransportSockIntfType = "Address";
 
     static constexpr auto uuidIntfPropertyUUID = "UUID";
     //     static constexpr auto mctpEndpointIntfPropertyUUID =
@@ -141,8 +145,7 @@ class MctpDiscovery
     static constexpr auto mctpBindingIntfProperty =
         "xyz.openbmc_project.MCTP.Binding";
 
-    static constexpr auto mctpBindingIntfPropertyBindType =
-        "BindingType";
+    static constexpr auto mctpBindingIntfPropertyBindType = "BindingType";
 
     /** @brief MCTP discovery path */
     static constexpr auto mctpPath = "/xyz/openbmc_project/mctp";
@@ -184,18 +187,23 @@ class MctpDiscovery
      * @brief Extracts transport medium value from the object's interfaces
      *
      * @param interfaces collection map with interfaces and its properties
-     * @return std::optional<spdmcpp::TransportMedium> with transport medium or false if failed
+     * @return std::optional<spdmcpp::TransportMedium> with transport medium or
+     * false if failed
      */
-    std::optional<spdmcpp::TransportMedium> getMediumType(const dbus::InterfaceMap& interfaces);
+    std::optional<spdmcpp::TransportMedium>
+        getMediumType(const dbus::InterfaceMap& interfaces);
 
     /**
-     * @brief Extracts Internal transport medium value from the object's interfaces
+     * @brief Extracts Internal transport medium value from the object's
+     * interfaces
      *
-     * @param properties collection of properties that comes from proper interface
+     * @param properties collection of properties that comes from proper
+     * interface
      * @return std::optional<spdmcpp::TransportMedium>
      */
     std::optional<spdmcpp::TransportMedium> getInternalMediumType(
-        const std::map<std::string, dbus::Value>& properties, std::string_view propName);
+        const std::map<std::string, dbus::Value>& properties,
+        std::string_view propName);
 
     /** @brief Get Transport Unix socket from the endpoint */
     std::string getTransportSocket(const dbus::InterfaceMap& interfaces);

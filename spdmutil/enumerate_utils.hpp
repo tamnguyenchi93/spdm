@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 
 #pragma once
 #include <sdbusplus/bus/match.hpp>
@@ -73,10 +71,10 @@ static constexpr auto mctpBindingIntfName = "xyz.openbmc_project.MCTP.Binding";
 static constexpr auto mctpBindingIntfPropertyBindType = "BindingType";
 
 /** @brief MCTP transport socket interface name */
-static constexpr auto mctpUnixSockIntfName = "xyz.openbmc_project.Common.UnixSocket";
+static constexpr auto mctpUnixSockIntfName =
+    "xyz.openbmc_project.Common.UnixSocket";
 
 /** @brief MCTP transport sock type */
 static constexpr auto unixSocketIntfAddressProperty = "Address";
-
 
 } // namespace spdmt

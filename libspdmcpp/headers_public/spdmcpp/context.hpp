@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,22 @@
  * limitations under the License.
  */
 
-
-
-
-
 #pragma once
 
 #include "assert.hpp"
 #include "common.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstdio>
-#include <string>
 #include <cstring>
 #include <iostream>
 #include <limits>
-#include <vector>
-#include <algorithm>
-#include <unordered_map>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace spdmcpp
 {
@@ -64,7 +60,8 @@ class ContextClass
     {
         if (ioContainer.count(path))
         {
-            throw std::invalid_argument("registerIoPcie: wrong transport medium param");
+            throw std::invalid_argument(
+                "registerIoPcie: wrong transport medium param");
         }
         ioContainer[path] = io;
     }
@@ -90,7 +87,7 @@ class ContextClass
 
     /**
      *  @bref Check if path is registered in the IO context
-    */
+     */
     bool isIOPathRegistered(const std::string& path) const
     {
         return ioContainer.count(path);
@@ -111,7 +108,8 @@ class ContextClass
             auto io = it->second;
             if (!io)
             {
-                throw std::invalid_argument("Unable to get io class for " + path);
+                throw std::invalid_argument("Unable to get io class for " +
+                                            path);
             }
             return io;
         }
@@ -124,7 +122,7 @@ class ContextClass
     std::vector<MessageVersionEnum> SupportedVersions;
 
     /** @brief SPDM container with indentifiers */
-    std::unordered_map<std::string,std::shared_ptr<IOClass>> ioContainer;
+    std::unordered_map<std::string, std::shared_ptr<IOClass>> ioContainer;
 };
 
 } // namespace spdmcpp

@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,12 @@
  * limitations under the License.
  */
 
-
-
-
 #pragma once
 
+#include <cstdint>
+#include <iostream>
 #include <limits>
 #include <string>
-#include <iostream>
-#include <cstdint>
 
 class WrapperConfig
 {
@@ -32,104 +29,112 @@ class WrapperConfig
      * @brief Thresholds with minimal values required to fuse given messages.
      *        In order to disable use value 256.
      */
-    enum class Source {
+    enum class Source
+    {
         Generator,
         RandomStream,
         File
-    } source { Source::RandomStream };
+    } source{Source::RandomStream};
 
-    class Threshold {
+    class Threshold
+    {
       public:
         bool enabled;
         uint8_t value;
 
-        bool operator<=(uint8_t rho) const {
+        bool operator<=(uint8_t rho) const
+        {
             if (!enabled)
             {
                 return false;
-	    }
-            return (bool) (value <= rho);
+            }
+            return (bool)(value <= rho);
         }
     };
 
-    //WrapperConfig() {
-        //reader = [] (char &value) -> bool {
-        //    return (bool) std::cin.get(value);
-        //};
+    // WrapperConfig() {
+    // reader = [] (char &value) -> bool {
+    //     return (bool) std::cin.get(value);
+    // };
     //}
 
-    struct {
-        Threshold version       { false, 0 };
-        Threshold capability    { false, 0 };
-        Threshold algorithms    { false, 0 };
-        Threshold digests       { false, 0 };
-        Threshold certificate   { false, 0 };
-        Threshold challengeAuth { false, 0 };
-        Threshold measurements  { false, 0 };
+    struct
+    {
+        Threshold version{false, 0};
+        Threshold capability{false, 0};
+        Threshold algorithms{false, 0};
+        Threshold digests{false, 0};
+        Threshold certificate{false, 0};
+        Threshold challengeAuth{false, 0};
+        Threshold measurements{false, 0};
     } fuseThrRespMessages;
 
-    struct {
-        Threshold nonce                 { false, 0 };
-        Threshold hashChain             { false, 0 };
-        Threshold hashChainLen          { false, 0 };
-        Threshold hashChainVal          { false, 0 };
-        Threshold measurementSummary    { false, 0 };
-        Threshold measurementSummaryLen { false, 0 };
-        Threshold measurementSummaryVal { false, 0 };
-        Threshold opaque                { false, 0 };
-        Threshold opaqueLen             { false, 0 };
-        Threshold opaqueVal             { false, 0 };
-        Threshold signature             { false, 0 };
-        Threshold signatureLen          { false, 0 };
-        Threshold signatureVal          { false, 0 };
+    struct
+    {
+        Threshold nonce{false, 0};
+        Threshold hashChain{false, 0};
+        Threshold hashChainLen{false, 0};
+        Threshold hashChainVal{false, 0};
+        Threshold measurementSummary{false, 0};
+        Threshold measurementSummaryLen{false, 0};
+        Threshold measurementSummaryVal{false, 0};
+        Threshold opaque{false, 0};
+        Threshold opaqueLen{false, 0};
+        Threshold opaqueVal{false, 0};
+        Threshold signature{false, 0};
+        Threshold signatureLen{false, 0};
+        Threshold signatureVal{false, 0};
     } fuseRespChallengeAuthentication;
-    struct {
-        Threshold nonce               { false, 0 };
-        Threshold measurementBlock    { false, 0 };
-        Threshold measurementBlockLen { false, 0 };
-        Threshold measurementBlockVal { false, 0 };
-        Threshold opaqueData          { false, 0 };
-        Threshold opaqueDataLen       { false, 0 };
-        Threshold opaqueDataVal       { false, 0 };
-        Threshold signature           { false, 0 };
-        Threshold signatureLen        { false, 0 };
-        Threshold signatureVal        { false, 0 };
+    struct
+    {
+        Threshold nonce{false, 0};
+        Threshold measurementBlock{false, 0};
+        Threshold measurementBlockLen{false, 0};
+        Threshold measurementBlockVal{false, 0};
+        Threshold opaqueData{false, 0};
+        Threshold opaqueDataLen{false, 0};
+        Threshold opaqueDataVal{false, 0};
+        Threshold signature{false, 0};
+        Threshold signatureLen{false, 0};
+        Threshold signatureVal{false, 0};
     } fuseRespMearurement;
 
     bool exitAfterFirstFuzzing{false};
     bool enableLogTrace{false};
-    int maxIter{13};//{std::numeric_limits<int>::max()};
+    int maxIter{13}; //{std::numeric_limits<int>::max()};
 
-    struct {
-        Threshold all         { false, 0 };
-        Threshold version     { false, 0 };
-        Threshold messageType { false, 0 };
-        Threshold param       { false, 0 };
+    struct
+    {
+        Threshold all{false, 0};
+        Threshold version{false, 0};
+        Threshold messageType{false, 0};
+        Threshold param{false, 0};
     } alterHeaderThr;
 
-    Threshold alterDataThr    { false, 0 };
+    Threshold alterDataThr{false, 0};
 
     std::string instructionFilename;
 
     static Threshold proc2thr(double proc);
     static double thr2proc(Threshold thr);
 
-    using CustomReader = bool (*)(char &);
+    using CustomReader = bool (*)(char&);
 
-    //void readerAddSource(std::istream &stream)
+    // void readerAddSource(std::istream &stream)
     //{
-        //this->stream = stream;
-        //reader = [&] (char &value) -> bool {
-        //    return (bool) this->stream.get(value);
-        //};
+    // this->stream = stream;
+    // reader = [&] (char &value) -> bool {
+    //     return (bool) this->stream.get(value);
+    // };
     //}
-    //CustomReader getReader() const { return reader; }
+    // CustomReader getReader() const { return reader; }
 
   private:
-    //std::istream stream;
-    //WrapperConfig::CustomReader reader;
+    // std::istream stream;
+    // WrapperConfig::CustomReader reader;
 };
 
-std::ostream & operator<<(std::ostream &out, const WrapperConfig::Threshold &thr);
+std::ostream& operator<<(std::ostream& out,
+                         const WrapperConfig::Threshold& thr);
 
-std::ostream & operator<<(std::ostream &out, const WrapperConfig &config);
+std::ostream& operator<<(std::ostream& out, const WrapperConfig& config);

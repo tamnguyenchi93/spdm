@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
-
 
 #include "test_helpers.hpp"
 
@@ -38,7 +32,7 @@
 /*
  * Pragma pack is temporary disabled due to bug in LLVM
  * https://www.mail-archive.com/llvm-bugs@lists.llvm.org/msg69115.html
-*/
+ */
 #ifndef __clang__
 
 using namespace spdmcpp;
@@ -253,7 +247,7 @@ bool packetEncodeDecodeInternal(const T& src, Targs... fargs)
     T dst;
     {
         size_t off = 0;
-        auto rs = packetDecodeInternal(log,dst, buf, off, fargs...);
+        auto rs = packetDecodeInternal(log, dst, buf, off, fargs...);
         if (rs != RetStat::OK)
         {
             std::cerr << "RetStat: " << get_cstr(rs) << std::endl;

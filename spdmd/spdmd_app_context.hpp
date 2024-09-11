@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-
-
-
 #pragma once
 
 #include "config.h"
@@ -26,15 +23,15 @@
 #include "spdmcpp/log.hpp"
 #include "utils.hpp"
 
+#include <nlohmann/json.hpp>
 #include <sdbusplus/bus.hpp>
 #include <sdeventplus/event.hpp>
 #include <sdeventplus/source/time.hpp>
 #include <xyz/openbmc_project/Logging/Entry/server.hpp>
 
 #include <chrono>
-#include <sstream>
 #include <optional>
-#include <nlohmann/json.hpp>
+#include <sstream>
 
 /* Define USE_PHOSPHOR_LOGGING to log error messages to phosphor logging module.
  */
@@ -71,7 +68,7 @@ class SpdmdAppContext
     sdbusplus::bus::bus bus;
 
     SpdmdAppContext(sdeventplus::Event&& e, sdbusplus::bus::bus&& b,
-                     std::ostream& logOutStream);
+                    std::ostream& logOutStream);
     SpdmdAppContext(const SpdmdAppContext&) = delete;
     SpdmdAppContext& operator=(const SpdmdAppContext&) = delete;
     SpdmdAppContext(SpdmdAppContext&&) = delete;
@@ -81,13 +78,15 @@ class SpdmdAppContext
     /** @brief Report an error severity message to phosphor logging object */
     bool reportError(const string& message)
     {
-        return reportLog(obmcprj::Logging::server::Entry::Level::Error, message);
+        return reportLog(obmcprj::Logging::server::Entry::Level::Error,
+                         message);
     }
 
     /** @brief Report a notice severity message to phosphor logging object */
     bool reportNotice(const string& message)
     {
-        return reportLog(obmcprj::Logging::server::Entry::Level::Notice, message);
+        return reportLog(obmcprj::Logging::server::Entry::Level::Notice,
+                         message);
     }
 
     /** @brief Get reference to logger object
@@ -98,9 +97,11 @@ class SpdmdAppContext
         return std::ref(log);
     }
 
-    /** @brief Verify json conf file, if it contains given property name for given eid
-     *   and if yes, then return this json property value */
-    template <typename T> std::optional<T> getPropertyByEid(uint8_t eid, const std::string& property) const
+    /** @brief Verify json conf file, if it contains given property name for
+     * given eid and if yes, then return this json property value */
+    template <typename T>
+    std::optional<T> getPropertyByEid(uint8_t eid,
+                                      const std::string& property) const
     {
         static constexpr auto confEndpoints = "endpoints";
         static constexpr auto confEID = "eid";
@@ -119,13 +120,16 @@ class SpdmdAppContext
 
         for (const auto& it : eps)
         {
-            if (!it.contains(confEID)) {
+            if (!it.contains(confEID))
+            {
                 continue;
             }
-            if(!it[confEID].is_number_unsigned()) {
+            if (!it[confEID].is_number_unsigned())
+            {
                 continue;
             }
-            if(it[confEID] != eid) {
+            if (it[confEID] != eid)
+            {
                 continue;
             }
             if (it.contains(property))
@@ -135,7 +139,6 @@ class SpdmdAppContext
         }
         return std::nullopt;
     }
-
 
   protected:
     /** @brief Set of EIDs to automatically measure, if empty all devices are
@@ -160,12 +163,11 @@ class SpdmdAppContext
     bool reportLog(obmcprj::Logging::server::Entry::Level severity,
                    const string& message);
 
-   /** @brief Log object used to log debug messages */
+    /** @brief Log object used to log debug messages */
     spdmcpp::LogClass log;
 
-   /** @brief Configuration data object */
+    /** @brief Configuration data object */
     nlohmann::json conf;
-
 };
 
 } // namespace spdmd

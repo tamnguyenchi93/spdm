@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-
-
-
 #include "../../packet.hpp"
 
 #pragma once
-
-
 
 #ifdef SPDMCPP_PACKET_HPP
 
@@ -49,7 +44,8 @@ struct PacketAlgorithmsResponseMin
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_printMl(log, Header);
             SPDMCPP_LOG_iexprln(log, Length);
@@ -137,7 +133,8 @@ struct PacketAlgorithmsResponseVar
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_printMl(log, Min);
             SPDMCPP_LOG_iexprln(log, PacketReqAlgVector.size());
@@ -174,7 +171,8 @@ struct PacketAlgorithmsResponseVar
 }
 
 [[nodiscard]] inline RetStat
-    packetDecodeInternal(spdmcpp::LogClass& logg,PacketAlgorithmsResponseVar& p,
+    packetDecodeInternal(spdmcpp::LogClass& logg,
+                         PacketAlgorithmsResponseVar& p,
                          const std::vector<uint8_t>& buf, size_t& off)
 {
     auto rs = packetDecodeInternal(logg, p.Min, buf, off);
@@ -188,7 +186,7 @@ struct PacketAlgorithmsResponseVar
     p.PacketReqAlgVector.resize(p.Min.Header.Param1);
     for (auto& iter : p.PacketReqAlgVector)
     {
-        rs = packetDecodeInternal(logg,iter, buf, off);
+        rs = packetDecodeInternal(logg, iter, buf, off);
         if (isError(rs))
         {
             return rs;

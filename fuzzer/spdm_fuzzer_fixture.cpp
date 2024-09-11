@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  * limitations under the License.
  */
 
-
-
-
-
-
 #include "spdm_fuzzer_fixture.hpp"
 
 namespace spdm_wrapper
 {
 RetStat FixtureIOClass::write(const std::vector<uint8_t>& buf,
-                timeout_us_t /*timeout*/)
+                              timeout_us_t /*timeout*/)
 {
     writeQueue.push_back(buf);
     if (logStream.is_open())
@@ -41,7 +36,7 @@ RetStat FixtureIOClass::write(const std::vector<uint8_t>& buf,
     return RetStat::OK;
 }
 RetStat FixtureIOClass::read(std::vector<uint8_t>& buf,
-                timeout_us_t /*timeout*/)
+                             timeout_us_t /*timeout*/)
 {
     if (readQueue.empty())
     {
@@ -53,7 +48,8 @@ RetStat FixtureIOClass::read(std::vector<uint8_t>& buf,
     {
         logStream << "RX> ";
         logStream << std::hex << std::setfill('0') << std::setw(2);
-        for (auto v : buf) {
+        for (auto v : buf)
+        {
             logStream << int(v) << " ";
         }
         logStream << std::endl;
@@ -61,4 +57,4 @@ RetStat FixtureIOClass::read(std::vector<uint8_t>& buf,
     readQueue.pop_front();
     return RetStat::OK;
 }
-}
+} // namespace spdm_wrapper

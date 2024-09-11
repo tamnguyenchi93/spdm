@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,11 @@
  * limitations under the License.
  */
 
-
-
-
 #pragma once
-
-#include "spdmcpp/flag.hpp"
 
 #include "spdm_fuzzer_config.hpp"
 #include "spdm_fuzzer_predefined_responses.hpp"
+#include "spdmcpp/flag.hpp"
 
 namespace spdm_wrapper
 {
@@ -31,13 +27,14 @@ class SpdmWrapperApp
 {
   public:
     void setupCli(int argc, char** argv);
-    bool run(spdmcpp::BaseAsymAlgoFlags asymAlgo, spdmcpp::BaseHashAlgoFlags hashAlgo);
+    bool run(spdmcpp::BaseAsymAlgoFlags asymAlgo,
+             spdmcpp::BaseHashAlgoFlags hashAlgo);
 
   private:
     WrapperConfig config;
     PredefinedResponses predefinedResponses;
 
-    //spdmcpp::LogClass::Level verbose = spdmcpp::LogClass::Level::Emergency;
+    // spdmcpp::LogClass::Level verbose = spdmcpp::LogClass::Level::Emergency;
 };
 
 } // namespace spdm_wrapper

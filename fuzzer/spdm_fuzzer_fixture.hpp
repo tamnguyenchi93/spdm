@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  * limitations under the License.
  */
 
-
-
-
-#include <list>
-#include <vector>
-
 #include <spdmcpp/assert.hpp>
 #include <spdmcpp/common.hpp>
 #include <spdmcpp/connection.hpp>
@@ -30,7 +24,9 @@
 #include <spdmcpp/mctp_support.hpp>
 
 #include <fstream>
+#include <list>
 #include <string>
+#include <vector>
 
 using namespace spdmcpp;
 
@@ -41,7 +37,8 @@ class FixtureTransportClass : public MctpTransportClass
 {
   public:
     FixtureTransportClass() = delete;
-    explicit FixtureTransportClass(int eid) : MctpTransportClass(eid) {}
+    explicit FixtureTransportClass(int eid) : MctpTransportClass(eid)
+    {}
 
     spdmcpp::RetStat setupTimeout(spdmcpp::timeout_us_t /*timeout*/) override
     {
@@ -54,9 +51,12 @@ class FixtureIOClass : public spdmcpp::IOClass
   public:
     FixtureIOClass() = delete;
 
-    //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    FixtureIOClass(std::string_view logName, std::list<std::vector<uint8_t>> &readQueue, std::list<std::vector<uint8_t>> &writeQueue):
-      readQueue(readQueue), writeQueue(writeQueue)
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    FixtureIOClass(std::string_view logName,
+                   std::list<std::vector<uint8_t>>& readQueue,
+                   std::list<std::vector<uint8_t>>& writeQueue) :
+        readQueue(readQueue),
+        writeQueue(writeQueue)
     {
         if (!logName.empty())
         {
@@ -70,12 +70,15 @@ class FixtureIOClass : public spdmcpp::IOClass
     RetStat read(std::vector<uint8_t>& buf,
                  timeout_us_t /*timeout*/ = timeoutUsInfinite) override;
 
-    void clearTx() { writeQueue.clear(); }
+    void clearTx()
+    {
+        writeQueue.clear();
+    }
 
   private:
-    std::list<std::vector<uint8_t>> &readQueue;
-    std::list<std::vector<uint8_t>> &writeQueue;
+    std::list<std::vector<uint8_t>>& readQueue;
+    std::list<std::vector<uint8_t>>& writeQueue;
     std::ofstream logStream;
 };
 
-}
+} // namespace spdm_wrapper

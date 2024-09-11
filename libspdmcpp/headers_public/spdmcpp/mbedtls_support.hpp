@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  * limitations under the License.
  */
 
-
-
-
-
 #pragma once
 
 #include "assert.hpp"
 #include "flag.hpp"
 #include "log.hpp"
 
-#include <cerrno>
 #include <mbedtls/ecdh.h>
 #include <mbedtls/ecdsa.h>
 #include <mbedtls/error.h>
@@ -34,12 +29,13 @@
 #include <mbedtls/pk.h>
 #include <mbedtls/x509_crt.h>
 
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace spdmcpp
 {
@@ -194,7 +190,7 @@ inline int verifySignature(mbedtls_x509_crt* cert,
                            const std::vector<uint8_t>& signature,
                            const std::vector<uint8_t>& hash)
 {
-    if(!cert)
+    if (!cert)
     {
         errno = -EINVAL;
         return -1;
@@ -220,7 +216,7 @@ inline int verifySignature(mbedtls_x509_crt* cert,
         SPDMCPP_ASSERT(false);
     }
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-    mbedtls_ecdh_context_raii ctx {};
+    mbedtls_ecdh_context_raii ctx{};
 
     int ret = mbedtls_ecdh_get_params(ctx, mbedtls_pk_ec(cert->pk),
                                       MBEDTLS_ECDH_OURS);
@@ -236,9 +232,9 @@ inline int verifySignature(mbedtls_x509_crt* cert,
     }
 
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-    mbedtls_mpi_raii bnR {}; 
+    mbedtls_mpi_raii bnR{};
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-    mbedtls_mpi_raii bnS {};
+    mbedtls_mpi_raii bnS{};
 
     ret = mbedtls_mpi_read_binary(bnR, signature.data(), halfSize);
     if (ret != 0)

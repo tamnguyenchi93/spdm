@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
 
 #include "dbus_impl_responder.hpp"
 
@@ -44,19 +39,19 @@ Responder::Responder(SpdmdAppContext& appCtx, const std::string& path,
                      const sdbusplus::message::object_path& mctpPath,
                      const sdbusplus::message::object_path& invPath,
                      spdmcpp::TransportMedium transportMedium,
-                     std::string socketPath
-                     ) :
+                     std::string socketPath) :
     ResponderIntf(appCtx.bus, path.c_str(), action::defer_emit),
-    appContext(appCtx), log(appCtx.getLog()), connection(appCtx.context, log, eid, std::move(socketPath)),
-    transport(eid, *this, transportMedium), inventoryPath(invPath), transportMedium(transportMedium), eid(eid)
+    appContext(appCtx), log(appCtx.getLog()),
+    connection(appCtx.context, log, eid, std::move(socketPath)),
+    transport(eid, *this, transportMedium), inventoryPath(invPath),
+    transportMedium(transportMedium), eid(eid)
 {
     {
         std::vector<std::tuple<std::string, std::string, std::string>> prop;
 
         prop.emplace_back("transport_object", "spdm_responder_object",
                           mctpPath);
-        prop.emplace_back("inventory_object", "spdm_responder_object",
-                          invPath);
+        prop.emplace_back("inventory_object", "spdm_responder_object", invPath);
 
         associations(std::move(prop));
     }
@@ -80,8 +75,9 @@ void Responder::updateVersionInfo()
 
 void Responder::updateCapabilities()
 {
-    capabilities(static_cast<std::underlying_type_t
-        <ResponderCapabilitiesFlags>>(connection.getCapabilitiesFlags()));
+    capabilities(
+        static_cast<std::underlying_type_t<ResponderCapabilitiesFlags>>(
+            connection.getCapabilitiesFlags()));
 }
 
 void Responder::updateAlgorithmsInfo()
@@ -107,18 +103,18 @@ void Responder::updateAlgorithmsInfo()
     {
 // NOLINTNEXTLINE cppcoreguidelines-macro-usage,-warnings-as-errors
 #define DTYPE(name)                                                            \
-        case SignatureEnum::name:                                                  \
-            signingAlgorithm(SigningAlgorithms::name);                             \
-            break;
-                DTYPE(TPM_ALG_RSASSA_2048)
-                DTYPE(TPM_ALG_RSAPSS_2048)
-                DTYPE(TPM_ALG_RSASSA_3072)
-                DTYPE(TPM_ALG_RSAPSS_3072)
-                DTYPE(TPM_ALG_RSASSA_4096)
-                DTYPE(TPM_ALG_RSAPSS_4096)
-                DTYPE(TPM_ALG_ECDSA_ECC_NIST_P256)
-                DTYPE(TPM_ALG_ECDSA_ECC_NIST_P384)
-                DTYPE(TPM_ALG_ECDSA_ECC_NIST_P521)
+    case SignatureEnum::name:                                                  \
+        signingAlgorithm(SigningAlgorithms::name);                             \
+        break;
+        DTYPE(TPM_ALG_RSASSA_2048)
+        DTYPE(TPM_ALG_RSAPSS_2048)
+        DTYPE(TPM_ALG_RSASSA_3072)
+        DTYPE(TPM_ALG_RSAPSS_3072)
+        DTYPE(TPM_ALG_RSASSA_4096)
+        DTYPE(TPM_ALG_RSAPSS_4096)
+        DTYPE(TPM_ALG_ECDSA_ECC_NIST_P256)
+        DTYPE(TPM_ALG_ECDSA_ECC_NIST_P384)
+        DTYPE(TPM_ALG_ECDSA_ECC_NIST_P521)
 #undef DTYPE
         case SignatureEnum::NONE:
         case SignatureEnum::INVALID:
@@ -196,18 +192,21 @@ void Responder::syncSlotsInfo()
 void Responder::handleError(spdmcpp::RetStat rs)
 {
     updateLastUpdateTime();
-    const std::string dbgIdName = "eid: " + std::to_string(connection.m_eid) + " name: " + inventoryPath.filename();
+    const std::string dbgIdName = "eid: " + std::to_string(connection.m_eid) +
+                                  " name: " + inventoryPath.filename();
     switch (rs)
     {
         case RetStat::ERROR_BUFFER_TOO_SMALL:
         case RetStat::ERROR_WRONG_REQUEST_RESPONSE_CODE:
         case RetStat::ERROR_UNKNOWN_REQUEST_RESPONSE_CODE:
             status(SPDMStatus::Error_RequesterCommunication);
-            appContext.reportError("SPDM requester communication fail on " + dbgIdName);
+            appContext.reportError("SPDM requester communication fail on " +
+                                   dbgIdName);
             break;
         case RetStat::ERROR_RESPONSE:
             status(SPDMStatus::Error_Responder);
-            appContext.reportError("SPDM responder response fail on " + dbgIdName);
+            appContext.reportError("SPDM responder response fail on " +
+                                   dbgIdName);
             break;
         case RetStat::ERROR_CERTIFICATE_CHAIN_DIGEST_INVALID:
         case RetStat::ERROR_ROOT_CERTIFICATE_HASH_INVALID:
@@ -215,7 +214,8 @@ void Responder::handleError(spdmcpp::RetStat rs)
         case RetStat::ERROR_CERTIFICATE_PARSING_ERROR:
         case RetStat::ERROR_CERTIFICATE_CHAIN_SIZE_INVALID:
             status(SPDMStatus::Error_CertificateValidation);
-            appContext.reportError("SPDM certificate validation fail on " + dbgIdName);
+            appContext.reportError("SPDM certificate validation fail on " +
+                                   dbgIdName);
             break;
         case RetStat::ERROR_AUTHENTICATION_FAILED:
             status(SPDMStatus::Error_AuthenticationFailed);
@@ -224,14 +224,16 @@ void Responder::handleError(spdmcpp::RetStat rs)
         case RetStat::ERROR_MEASUREMENT_SIGNATURE_VERIFIY_FAILED:
             status(SPDMStatus::Error_MeasurementsSignatureVerificationFailed);
             appContext.reportError(
-                "SPDM measurements signature verification fail on " + dbgIdName);
+                "SPDM measurements signature verification fail on " +
+                dbgIdName);
             break;
         case RetStat::ERROR_TIMEOUT:
             status(Responder::SPDMStatus::Error_ConnectionTimeout);
-            appContext.reportError("SPDM timeout on " + dbgIdName
-                + ", while waiting on: " + get_cstr(connection.getDbgLastWaitState())
-                + ", timeout value: " + std::to_string(connection.getSendTimeoutValue()) + "ms"
-            );
+            appContext.reportError(
+                "SPDM timeout on " + dbgIdName + ", while waiting on: " +
+                get_cstr(connection.getDbgLastWaitState()) +
+                ", timeout value: " +
+                std::to_string(connection.getSendTimeoutValue()) + "ms");
             getLog().print("sendBuffer=");
             getLog().println(connection.getSendBufferRef());
             break;
@@ -265,7 +267,8 @@ spdmcpp::RetStat Responder::handleEventForRefresh(spdmcpp::EventClass& ev)
         return rs;
     }
 
-    ConnectionClass::SlotIdx slotidx = connection.getCurrentCertificateSlotIdx();
+    ConnectionClass::SlotIdx slotidx =
+        connection.getCurrentCertificateSlotIdx();
 
     if (!connection.isWaitingForResponse())
     {
@@ -273,7 +276,7 @@ spdmcpp::RetStat Responder::handleEventForRefresh(spdmcpp::EventClass& ev)
         updateLastUpdateTime();
         status(SPDMStatus::Success);
     }
-    else if(connection.hasInfo(ConnectionInfoEnum::CAPABILITIES))
+    else if (connection.hasInfo(ConnectionInfoEnum::CAPABILITIES))
     {
         updateCapabilities();
         status(SPDMStatus::GettingCertificates);
@@ -307,7 +310,7 @@ void Responder::refresh(uint8_t slotIndex, std::vector<uint8_t> nonc,
         // the new refresh or to queue the request for processing after the
         // current one is done
         auto& lg = getLog();
-        lg.iprint( "WARNING - refresh ignored because previous req: ");
+        lg.iprint("WARNING - refresh ignored because previous req: ");
         lg.iprint(connection.getWaitingForResponse());
         lg.iprint(" on eid: ");
         lg.iprint(eid);
@@ -362,8 +365,7 @@ void Responder::refresh(uint8_t slotIndex, std::vector<uint8_t> nonc,
             {
                 getLog().iprint("WARNING - invalid measurement index value '");
                 getLog().print(ind);
-                getLog().println(
-                    "' when specifying multiple indices!");
+                getLog().println("' when specifying multiple indices!");
                 status(SPDMStatus::Error_InvalidArguments);
                 return;
             }
@@ -440,9 +442,10 @@ spdmcpp::RetStat
                 appContext.bus, std::string(inventoryPath).c_str(),
                 "org.freedesktop.DBus.Properties", "Set");
 
-            method.append(
-                "xyz.openbmc_project.Inventory.Decorator.Asset", "SerialNumber",
-                std::variant<std::string>(toBigEndianHexString(iter->second.ValueVector)));
+            method.append("xyz.openbmc_project.Inventory.Decorator.Asset",
+                          "SerialNumber",
+                          std::variant<std::string>(
+                              toBigEndianHexString(iter->second.ValueVector)));
             appContext.bus.call_noreply(method);
         }
     }

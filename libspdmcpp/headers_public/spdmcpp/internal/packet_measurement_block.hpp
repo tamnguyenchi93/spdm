@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 
 #include "../packet.hpp"
 
@@ -35,7 +31,8 @@ struct PacketMeasurementBlockMin
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_iexprln(log, Index);
             log.print("   ");
@@ -103,7 +100,8 @@ struct PacketMeasurementBlockVar
 
     void printMl(LogClass& log) const
     {
-        if (log.logLevel >= LogClass::Level::Informational) {
+        if (log.logLevel >= LogClass::Level::Informational)
+        {
             SPDMCPP_LOG_INDENT(log);
             SPDMCPP_LOG_printMl(log, Min);
             SPDMCPP_LOG_iexprln(log, MeasurementVector);
@@ -125,7 +123,7 @@ struct PacketMeasurementBlockVar
 }
 
 [[nodiscard]] inline RetStat
-    packetDecodeInternal(spdmcpp::LogClass& logg,PacketMeasurementBlockVar& p,
+    packetDecodeInternal(spdmcpp::LogClass& logg, PacketMeasurementBlockVar& p,
                          const std::vector<uint8_t>& buf, size_t& off)
 {
     auto rs = packetDecodeBasic(logg, p.Min, buf, off);

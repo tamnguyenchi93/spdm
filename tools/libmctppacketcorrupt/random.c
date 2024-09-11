@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,15 @@
  * limitations under the License.
  */
 
-
-
-
-
 #include "random.h"
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+
 #include <errno.h>
-#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h> /* exit */
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 static FILE* frand;
 
@@ -34,7 +31,8 @@ static FILE* frand;
 int random_init(void)
 {
     frand = fopen("/dev/urandom", "r");
-    if(!frand) {
+    if (!frand)
+    {
         return -1;
     }
     return 0;
@@ -43,9 +41,11 @@ int random_init(void)
 //! Get random value
 int random_value(u32* val)
 {
-    if(frand) {
+    if (frand)
+    {
         unsigned ret = fread(val, sizeof(*val), 1, frand);
-        if(ret==1) {
+        if (ret == 1)
+        {
             return 0;
         }
         return -1;
@@ -56,8 +56,8 @@ int random_value(u32* val)
 //! Deinitialize random gen
 void random_deinit(void)
 {
-    if(frand) {
+    if (frand)
+    {
         fclose(frand);
     }
 }
-

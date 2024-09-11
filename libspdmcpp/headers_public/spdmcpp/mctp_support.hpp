@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION &
+ * AFFILIATES. All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
-
-
-
-
 #pragma once
 
 #include "assert.hpp"
 #include "common.hpp"
 
 #include <arpa/inet.h>
+#include <libmctp-externals.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -37,7 +34,6 @@
 #include <iostream>
 #include <limits>
 #include <vector>
-#include <libmctp-externals.h>
 
 namespace spdmcpp
 {
@@ -151,7 +147,7 @@ class MctpTransportClass : public TransportClass
     {
 
         /** @brief MCTP header data
-        */
+         */
         uint8_t mctpHeader;
 
         /** @brief Either source or the destination EndpointID, depending on
@@ -166,7 +162,7 @@ class MctpTransportClass : public TransportClass
         MCTPMessageTypeEnum type;
 
         /** @brief Get The MCTP tag type
-        */
+         */
         auto mctpTag() const noexcept -> mctp_tag_t
         {
             return static_cast<mctp_tag_t>(mctpHeader & 0x07);
@@ -179,7 +175,7 @@ class MctpTransportClass : public TransportClass
         }
 
         /** @brieg Get MCTO TO bit
-        */
+         */
         auto mctpTO() const noexcept -> bool
         {
             return mctpHeader & 0x08;
@@ -225,7 +221,7 @@ class MctpIoClass : public IOClass
 
         // NOLINTNEXTLINE cppcoreguidelines-pro-type-cstyle-cast
         if (::connect(Socket, (struct sockaddr*)&addr,
-            path.length() + sizeof(addr.sun_family)) == -1)
+                      path.length() + sizeof(addr.sun_family)) == -1)
         {
             if (Log.logLevel >= LogClass::Level::Critical)
             {
@@ -257,7 +253,8 @@ class MctpIoClass : public IOClass
         }
         if (Log.logLevel >= LogClass::Level::Informational)
         {
-            Log.iprintln("AF_UNIX \\0" + path.substr(1) + ": Connection success!\n");
+            Log.iprintln("AF_UNIX \\0" + path.substr(1) +
+                         ": Connection success!\n");
         }
         return true;
     }
@@ -296,7 +293,8 @@ inline RetStat MctpIoClass::write(const std::vector<uint8_t>& buf,
         ssize_t ret = send(Socket, (void*)&buf[sent], buf.size() - sent, 0);
         if (ret == -1)
         {
-            if (Log.logLevel >= LogClass::Level::Critical) {
+            if (Log.logLevel >= LogClass::Level::Critical)
+            {
                 Log.iprint("Send error:");
                 Log.println(errno);
             }
@@ -316,7 +314,8 @@ inline RetStat MctpIoClass::read(std::vector<uint8_t>& buf,
     if (result == -1 || result == 0)
     {
         buf.clear();
-        if (Log.logLevel >= LogClass::Level::Critical) {
+        if (Log.logLevel >= LogClass::Level::Critical)
+        {
             Log.iprint("Receive error: ");
             Log.println(errno);
         }
