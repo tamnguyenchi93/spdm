@@ -78,7 +78,8 @@ def csv_to_json(csv_path):
         try:
             meas_duration = dateparser.parse(d[6]) - dateparser.parse(d[5])
             r['MeasurementDuration'] = format(meas_duration.total_seconds(), '.3f')
-        except:
+        except (ValueError, TypeError) as e:
+            print(f"Get an exception error: {e}")
             r['MeasurementDuration'] = 0.000
             print("Measurement duration exception (error) for " + str(csv_path) + ": " + str(d))            
         j['Results'].append(r)

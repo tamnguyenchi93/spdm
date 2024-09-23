@@ -47,9 +47,9 @@ inline HashEnum toHash(BaseHashAlgoFlags flags)
             return HashEnum::TPM_ALG_SHA_512;
             // 			case BaseHashAlgoFlags::TPM_ALG_SHA3_256:	return
             // HashEnum::TPM_ALG_SHA_;	//TODO support for SHA3 missing from
-            // mbedtls... 			case BaseHashAlgoFlags::TPM_ALG_SHA3_384:	return
-            // HashEnum::TPM_ALG_SHA_;
-            // 			case BaseHashAlgoFlags::TPM_ALG_SHA3_512:	return
+            // mbedtls... 			case BaseHashAlgoFlags::TPM_ALG_SHA3_384:
+            // return HashEnum::TPM_ALG_SHA_; 			case
+            // BaseHashAlgoFlags::TPM_ALG_SHA3_512:	return
             // HashEnum::TPM_ALG_SHA_;
         default:
             return HashEnum::INVALID;

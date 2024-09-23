@@ -26,7 +26,7 @@ OUTPUT_DIR=output-$(date "+%F-%H-%M-%S")
 rm -rf ${OUTPUT_DIR}
 mkdir -p ${OUTPUT_DIR}
 
-for CH in ${CHASSIS[@]}; do
+for CH in "${CHASSIS[@]}"; do
     mkdir -p ${OUTPUT_DIR}/${CH}
     for FILE in ./${REQUEST_FOLDER}/*.json; do
         AGGREGATE_RESULT=$(jq -nc \
