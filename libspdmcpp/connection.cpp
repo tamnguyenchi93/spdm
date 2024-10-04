@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <bit>
 #include <fstream>
+#include <ranges>
 #include <type_traits>
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
@@ -176,8 +177,7 @@ bool ConnectionClass::getCertificatesPEM(std::string& str,
     }
 
     const SlotClass& slot = Slots[slotidx];
-
-    for (auto& cert : slot.MCertificates)
+    for (const auto& cert : std::ranges::reverse_view(slot.MCertificates))
     {
         size_t off = str.size();
         size_t size = 4096;
