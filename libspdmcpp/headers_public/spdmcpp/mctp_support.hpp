@@ -35,6 +35,8 @@
 #include <limits>
 #include <vector>
 
+#include <linux/mctp.h>
+
 namespace spdmcpp
 {
 // these are for use with the mctp-demux-daemon
@@ -188,6 +190,71 @@ class MctpTransportClass : public TransportClass
     uint8_t EID = 0;
 };
 
+/** @class MctpTransportKernelClass
+ *  @brief Support class for transport through the mctp-kernel
+ *  @details This class should be further derived to add timeout support.
+ *  MCTP kernel send/receive message without MCTP header, so HeaderTyep struct is no need.
+ */
+class MctpTransportKernelClass : public TransportClass
+{
+  public:
+    /** @brief The constructor
+     *  @param[in] eid - The EndpointID that this instance communicates with,
+     * it's checked when decoding written into the packet when encoding
+     */
+    explicit MctpTransportKernelClass(uint8_t eid) : EID(eid)
+    {}
+
+    RetStat encodePre(std::vector<uint8_t>& /*buf*/, [[maybe_unused]] LayerState& lay) override
+    {
+        return RetStat::OK;
+    }
+    RetStat encodePost([[maybe_unused]] std::vector<uint8_t>& buf, [[maybe_unused]] LayerState& lay) override
+    {
+        /*auto& header = getHeaderRef<HeaderType>(buf, lay);*/
+        /*header.mctpTag(MCTP_TAG_SPDM);*/
+        /*header.eid = EID;*/
+        /*header.type = MCTPMessageTypeEnum::SPDM;*/
+        return RetStat::OK;
+    }
+
+    RetStat decode([[maybe_unused]] std::vector<uint8_t>& buf, LayerState& lay) override
+    {
+        setLayerSize(lay, 0);
+        return RetStat::OK;
+    }
+
+    /** @brief Static helper for quickly fetching the EnpointID, typically for
+     * routing
+     *  @details The function also checks buffer bounds
+     *  @param[in] buf - buffer containing the full received data
+     *  @param[inout] lay - lay.Offset specifies where the transport layer
+     * starts, lay.Size  will be set to the size of the transport data
+     *  @param[out] eid - the EndpointID will be written to this parameter
+     *  @returns OK if there were no errors and eid was written, or
+     * ERROR_BUFFER_TOO_SMALL, or ERROR_WRONG_MCTP_TYPE
+     */
+    static RetStat peekEid([[maybe_unused]] std::vector<uint8_t>& buf, [[maybe_unused]] LayerState& lay,
+                           [[maybe_unused]] uint8_t& eid)
+    {
+        return RetStat::OK;
+    }
+
+    /** @brief Static helper for checking if the buffer is large enough to fit
+     * the header
+     */
+    static bool doesHeaderFit([[maybe_unused]] std::vector<uint8_t>& buf, [[maybe_unused]] LayerState& lay)
+    {
+        return true;
+    }
+
+  protected:
+
+    /** @brief The EndpointID that this instance communicates with, it's checked
+     * when decoding written into the packet when encoding
+     */
+    uint8_t EID = 0;
+};
 // NOLINTNEXTLINE cppcoreguidelines-special-member-functions
 class MctpIoClass : public IOClass
 {
@@ -278,7 +345,7 @@ class MctpIoClass : public IOClass
         return Socket;
     }
 
-  private:
+  protected:
     LogClass& Log;
     int Socket = -1;
 };
@@ -325,4 +392,93 @@ inline RetStat MctpIoClass::read(std::vector<uint8_t>& buf,
     return RetStat::OK;
 }
 
+class MctpKernelIoClass : public MctpIoClass
+{
+public:
+    MctpKernelIoClass(LogClass& log, uint8_t eid, uint8_t net) : MctpIoClass(log)
+    {
+        addr.smctp_family = AF_MCTP;
+        addr.smctp_network = net;
+        addr.smctp_addr.s_addr = eid;
+        addr.smctp_tag = MCTP_TAG_OWNER;
+        addr.smctp_type = 5;
+    }
+
+
+    bool createSocket([[maybe_unused]] const std::string& path)
+    {
+        SPDMCPP_LOG_TRACE_FUNC(Log);
+        Socket = socket(AF_MCTP, SOCK_DGRAM, 0);
+        if (Socket == -1)
+        {
+            return false;
+        }
+
+        /*addr.smctp_family = AF_MCTP;*/
+        /*addr.smctp_network = net;*/
+        /*addr.smctp_addr.s_addr = eid;*/
+        /*addr.smctp_tag = MCTP_TAG_OWNER;*/
+        /*addr.smctp_type = 5;*/
+        /* HACK: remove unused warning
+         *
+         */
+        return true;
+    }
+
+    RetStat write(const std::vector<uint8_t>& buf,
+                  timeout_us_t timeout = timeoutUsInfinite) override;
+    RetStat read(std::vector<uint8_t>& buf,
+                 timeout_us_t timeout = timeoutUsInfinite) override;
+
+  private:
+    // NOLINTNEXTLINE cppcoreguidelines-avoid-c-arrays
+    struct sockaddr_mctp addr
+    {};
+};
+
+inline RetStat MctpKernelIoClass::write(const std::vector<uint8_t>& buf,
+                                  timeout_us_t /*timeout*/)
+{
+    SPDMCPP_LOG_TRACE_FUNC(Log);
+    size_t sent = 0;
+    addr.smctp_tag = MCTP_TAG_OWNER;
+    while (sent < buf.size())
+    {
+        ssize_t ret = sendto(Socket, (void*)&buf[sent], buf.size() - sent, 0,
+                             (struct sockaddr *)&addr, sizeof(addr));
+        if (ret == -1)
+        {
+            if (Log.logLevel >= LogClass::Level::Critical)
+            {
+                Log.iprint("Send error:");
+                Log.println(errno);
+            }
+            return RetStat::ERROR_UNKNOWN;
+        }
+        sent += ret;
+    }
+    return RetStat::OK;
+}
+
+inline RetStat MctpKernelIoClass::read(std::vector<uint8_t>& buf,
+                                 timeout_us_t /*timeout*/)
+{
+    socklen_t addrlen = sizeof(addr);
+    SPDMCPP_LOG_TRACE_FUNC(Log);
+    buf.resize(mctpMaxMessageSize);
+    ssize_t result = recvfrom(Socket, (void*)buf.data(), buf.size(), 0,
+                             (struct sockaddr *)&addr, &addrlen);
+    if (result == -1 || result == 0)
+    {
+        buf.clear();
+        if (Log.logLevel >= LogClass::Level::Critical)
+        {
+            Log.iprint("Receive error: ");
+            Log.println(errno);
+        }
+        return RetStat::ERROR_UNKNOWN;
+    }
+    buf.resize(result);
+    return RetStat::OK;
+}
 } // namespace spdmcpp

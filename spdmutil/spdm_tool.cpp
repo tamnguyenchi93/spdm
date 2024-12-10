@@ -18,6 +18,7 @@
 #include "spdm_tool.hpp"
 
 #include "enumerate_endpoints.hpp"
+#include "spdmcpp/mctp_support.hpp"
 #include "str_conv.hpp"
 
 #include <mbedtls/ecdh.h>
@@ -33,6 +34,7 @@
 #include <spdmcpp/common.hpp>
 #include <spdmcpp/packet.hpp>
 
+#include <cstddef>
 #include <map>
 
 namespace spdmt
@@ -51,7 +53,7 @@ static constexpr auto numSubCmds = 6U;
 
 // Constructor
 SpdmTool::SpdmTool() :
-    log(std::cout), cmdList(numSubCmds, std::nullopt), mctpIO(log)
+    log(std::cout), cmdList(numSubCmds, std::nullopt)
 {
     log.setLogLevel(LogClass::Level::Critical);
     packetDecodeInfo.BaseHashSize = defHashAlgoSize;
@@ -88,6 +90,12 @@ auto SpdmTool::parseArgs(int argc, char** argv) -> int
     app.add_option("--json", jsonFilename, "Save responses to JSON file");
     // Add option for the debug tool
     app.add_flag("--debug", debugMode, "Enable tool debugging");
+    // Add option for the MCTP-kernel
+    app.add_flag("--kernel", kernelMode, "Using MCTP kernel instead of mctp-demux-daemon");
+    // MCTP network
+    app.add_option("-n,--net", m_net, "MCTP kernel network")
+        ->check(CLI::Range(0x00, 0xff))
+        ->default_val(MCTP_NET_ANY);
     // Add option for enumerate endpoints
     app.add_flag("--enumerate", needEnumEps, "Enumerate spdm endpoints");
     // Target subcommands for processing
@@ -485,7 +493,13 @@ auto SpdmTool::runComm() -> bool
     }
     try
     {
-        transport = std::make_unique<MctpTransportClass>(m_eid);
+        if (kernelMode) {
+            mctpIO = std::make_unique<MctpKernelIoClass>(log, m_eid, m_net);
+            transport = std::make_unique<MctpTransportKernelClass>(m_eid);
+        } else {
+            mctpIO = std::make_unique<MctpIoClass>(log);
+            transport = std::make_unique<MctpTransportClass>(m_eid);
+        }
         if (!transport)
         {
             std::cerr << "Unable to create transport class" << std::endl;
@@ -712,6 +726,15 @@ auto SpdmTool::parseResp(std::vector<uint8_t>& buf) -> spdmcpp::RetStat
 // Try connect MCTP
 auto SpdmTool::connectMctp() -> void
 {
+    if (kernelMode) {
+        if (!dynamic_cast<MctpKernelIoClass&>(*mctpIO).createSocket(""))
+        {
+            using namespace std::string_literals;
+            throw std::logic_error("Unable connect to MCTP socket ");
+        }
+        return;
+    }
+
     EnumerateEndpoints enumerate(dbusIfc);
     auto& respInfo = enumerate.getRespondersInfo();
     if (respInfo.empty() || respInfo.back().sockPath.empty())
@@ -719,7 +742,7 @@ auto SpdmTool::connectMctp() -> void
         throw std::logic_error("Unable to get transport socket");
     }
     const auto& unixSock = respInfo.back().sockPath;
-    if (!mctpIO.createSocket(unixSock))
+    if (!dynamic_cast<MctpIoClass&>(*mctpIO).createSocket(unixSock))
     {
         using namespace std::string_literals;
         throw std::logic_error("Unable connect to MCTP socket "s +
@@ -731,7 +754,7 @@ auto SpdmTool::recvMctp(std::vector<uint8_t>& buf) -> spdmcpp::RetStat
 {
     static constexpr auto timeout = 180'000U;
     std::array<pollfd, 1> pfd{};
-    pfd[0].fd = mctpIO.getSocket();
+    pfd[0].fd = mctpIO->getSocket();
     pfd[0].events = POLLIN;
     auto ret = ::poll(pfd.data(), 1, timeout);
     if (ret == -1)
@@ -742,7 +765,7 @@ auto SpdmTool::recvMctp(std::vector<uint8_t>& buf) -> spdmcpp::RetStat
     {
         return RetStat::ERROR_TIMEOUT;
     }
-    return mctpIO.read(buf);
+    return mctpIO->read(buf);
 }
 // Send data over MCTP
 auto SpdmTool::sendMctp(const std::vector<uint8_t>& buf) -> spdmcpp::RetStat
@@ -754,7 +777,7 @@ auto SpdmTool::sendMctp(const std::vector<uint8_t>& buf) -> spdmcpp::RetStat
         log.print("sendBufer = ");
         log.println(buf);
     }
-    return mctpIO.write(buf);
+    return mctpIO->write(buf);
 }
 
 //! Parse certificate chain
@@ -847,11 +870,11 @@ auto SpdmTool::run() -> bool
     bool ret{};
     do
     {
-        ret = runEnumerate();
-        if (!ret)
-        {
-            break;
-        }
+        /*ret = runEnumerate();*/
+        /*if (!ret)*/
+        /*{*/
+        /*    break;*/
+        /*}*/
         ret = runComm();
         if (!ret)
         {

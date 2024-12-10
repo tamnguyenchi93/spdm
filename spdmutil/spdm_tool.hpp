@@ -94,7 +94,7 @@ class SpdmTool
     // Current request with args
     std::vector<std::optional<cmdv>> cmdList;
     // Connection class
-    spdmcpp::MctpIoClass mctpIO;
+    std::unique_ptr<spdmcpp::MctpIoClass> mctpIO;
     //! Target EID
     int m_eid{cmdCliInvalid};
     // Save to json
@@ -102,7 +102,7 @@ class SpdmTool
     // Json object
     nlohmann::json jsonGen;
     // MCTP transport
-    std::unique_ptr<spdmcpp::MctpTransportClass> transport;
+    std::unique_ptr<spdmcpp::TransportClass> transport;
     // Packet decode info
     spdmcpp::PacketDecodeInfo packetDecodeInfo;
     // Retrive whole cert
@@ -114,6 +114,10 @@ class SpdmTool
     std::optional<spdmcpp::PacketAlgorithmsResponseVar> algoResp;
     //! Need enumerate
     bool needEnumEps{};
+    // MCTP kernel mode
+    bool kernelMode{};
+    //! Target NET
+    int m_net{cmdCliInvalid};
 };
 
 //! Prepare request
