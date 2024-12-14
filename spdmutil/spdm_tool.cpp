@@ -160,6 +160,9 @@ auto SpdmTool::parseArgs(int argc, char** argv) -> int
         log.setLogLevel(LogClass::Level::Informational);
     }
 
+    if (kernelMode) {
+        dbusIfc = dbusIfcMCTP;
+    }
     // Check for enum or for normal get values
     if (needEnumEps && (m_eid != cmdCliInvalid))
     {
@@ -870,11 +873,11 @@ auto SpdmTool::run() -> bool
     bool ret{};
     do
     {
-        /*ret = runEnumerate();*/
-        /*if (!ret)*/
-        /*{*/
-        /*    break;*/
-        /*}*/
+        ret = runEnumerate();
+        if (!ret)
+        {
+            break;
+        }
         ret = runComm();
         if (!ret)
         {

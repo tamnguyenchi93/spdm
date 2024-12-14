@@ -109,7 +109,14 @@ auto EnumerateEndpoints::getEid(
             eid = std::get<size_t>(properties.at(mctpEndpointIntfPropertyEid));
         }
         catch (const std::bad_variant_access& e1)
-        {}
+        {
+            try
+            {
+                eid = std::get<uint8_t>(properties.at(mctpEndpointIntfPropertyEid));
+            }
+            catch (const std::bad_variant_access& e2)
+            {}
+        }
     }
     if (eid.has_value())
     {
@@ -182,5 +189,5 @@ auto EnumerateEndpoints::getUnixSocketAddress(
     {}
     return {};
 }
-
 } // namespace spdmt
+

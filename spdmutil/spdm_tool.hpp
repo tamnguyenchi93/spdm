@@ -83,6 +83,7 @@ class SpdmTool
 
   private:
     static constexpr auto cmdCliInvalid = -1;
+    static constexpr auto dbusIfcMCTP = "xyz.openbmc_project.MCTP";
     static constexpr auto dbusIfcPCIe = "xyz.openbmc_project.MCTP.Control.PCIe";
     static constexpr auto dbusIfcSPI = "xyz.openbmc_project.MCTP.Control.SPI";
     static constexpr auto dbusIfcUSB = "xyz.openbmc_project.MCTP.Control.USB";
